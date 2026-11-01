@@ -1,3 +1,4 @@
+import {orderChoice} from './minigames.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {levels,tasks,createRun,answer,advance,summary,explanation,unlocked} from './engine.mjs';
@@ -11,14 +12,14 @@ test('6600 generated missions: exact answers, unique choices, required ranges an
  for(const r of ['preschool','school','adult'])for(const l of levels(r))for(let n=0;n<100;n++){
    const qs=tasks(r,l.number,rng);assert.equal(qs.length,l.count);
    for(const q of qs){
-     assert.ok(Number.isInteger(q.answer)&&q.answer>=0);assert.equal(explanation(r,q).length,3);
-     if(q.kind==='equation'){assert.equal(q.answer,q.op==='+'?q.a+q.b:q.op==='−'?q.a-q.b:q.op==='×'?q.a*q.b:q.a/q.b);if(q.op==='÷')assert.ok(q.b>0);if(['+','−'].includes(q.op)){assert.ok(q.a<=l.max);assert.ok(q.b<=l.max);assert.ok(q.answer<=l.max);}}
-     if(q.kind==='sequence')assert.ok(q.a+2<=l.max);
+     assert.ok(Number.isInteger(q.answer)&&(q.answer>=0||q.kind==='relation'));assert.equal(explanation(r,q).length,3);
+     if(q.baseKind==='equation'){assert.equal(q.mathAnswer,q.op==='+'?q.a+q.b:q.op==='−'?q.a-q.b:q.op==='×'?q.a*q.b:q.a/q.b);if(q.op==='÷')assert.ok(q.b>0);if(['+','−'].includes(q.op)){assert.ok(q.a<=l.max);assert.ok(q.b<=l.max);assert.ok(q.mathAnswer<=l.max);}}
+     if(q.baseKind==='sequence')assert.ok(q.a+2<=l.max);
      if(q.options){assert.equal(new Set(q.options).size,q.options.length);assert.equal(q.options.filter(n=>n===q.answer).length,1);}
      if(q.type==='addNoCarry')assert.ok(q.a%10+q.b%10<10);
      if(q.type==='subNoBorrow')assert.ok(q.a%10>=q.b%10);
-     if(q.type==='carry')assert.ok(q.a<10&&q.b<10&&q.answer>10);
-     if(q.type==='borrow')assert.ok(q.a>10&&q.answer<10);
+     if(q.type==='carry')assert.ok(q.a<10&&q.b<10&&q.mathAnswer>10);
+     if(q.type==='borrow')assert.ok(q.a>10&&q.mathAnswer<10);
    }
  }
 });
@@ -27,3 +28,17 @@ test('Scores +10/-5 and help excluded from independent accuracy',()=>{const r=cr
 test('Practice never loses lives, gains score or unlocks levels',()=>{const r=createRun('adult',true);for(const q of r.questions){answer(r,q.answer);advance(r);}assert.equal(r.lives,3);assert.equal(r.score,0);assert.equal(r.done,true);assert.equal(summary(r).unlocks,false);});
 test('Every level completes once; passing unlocks only the next step',()=>{for(const route of ['preschool','school','adult']){const history=[];assert.equal(unlocked(route,history),1);for(const l of levels(route)){const r=createRun(route,false,l.number);for(const q of r.questions){answer(r,q.answer);advance(r);}const s=summary(r);assert.equal(s.accuracy,100);assert.equal(s.unlocks,true);assert.equal(r.score,r.questions.length*10);history.push(s);assert.equal(unlocked(route,history),Math.min(l.number+1,levels(route).length));const before=JSON.stringify(r);answer(r,1);advance(r);assert.equal(JSON.stringify(r),before);}}});
 test('All-assisted completion does not unlock; a failed mission does not unlock',()=>{const r=createRun('school');for(const q of r.questions){answer(r,q.answer,true);advance(r);}assert.equal(summary(r).completed,true);assert.equal(summary(r).unlocks,false);const fail=createRun('school');for(let i=0;i<3;i++){answer(fail,null);advance(fail);}assert.equal(summary(fail).unlocks,false);});
+
+test('Distinct games validate signs, memory, patterns, mistakes and complete ordering',()=>{
+ const signs=new Set(),kinds=new Set();
+ for(const route of ['preschool','school','adult'])for(const l of levels(route))for(let n=0;n<30;n++)for(const q of tasks(route,l.number,rng)){
+ kinds.add(q.kind);
+ if(q.kind==='relation'){signs.add(q.answer);assert.equal(q.answer,Math.sign(q.left-q.right));}
+ if(q.kind==='memory'){assert.equal(q.cards[q.answer],q.mathAnswer);assert.equal(new Set(q.cards).size,4);}
+ if(q.kind==='odd')assert.equal(q.items.filter(v=>v===q.items[q.answer]).length,1);
+ if(q.kind==='pattern')assert.equal(q.patternOptions[q.answer],q.tiles[0]===q.tiles[1]?q.tiles[2]:q.tiles[0]===q.tiles[2]?q.tiles[1]:q.tiles[2]);
+ if(q.kind==='detective'){assert.equal(q.items.filter(v=>v.shown!==v.answer).length,1);assert.notEqual(q.items[q.answer].shown,q.items[q.answer].answer);}
+ if(q.kind==='order'){assert.equal(q.items.length,3);assert.equal(new Set(q.items.map(v=>v.value)).size,3);const selected=[];for(const item of [...q.items].sort((a,b)=>a.value-b.value)){const i=q.items.indexOf(item);assert.equal(orderChoice(q,i,selected),true);selected.push(i);assert.equal(orderChoice(q,i,selected),false);}}
+ }
+ assert.deepEqual([...signs].sort(),[-1,0,1]);for(const k of ['collect','odd','memory','relation','order','pattern','detective'])assert.ok(kinds.has(k));
+});
