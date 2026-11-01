@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#b9deed"/><stop offset="1" stop-color="#f8efd6"/></linearGradient><linearGradient id="hill" x2="0" y2="1"><stop stop-color="#9ac2a2"/><stop offset="1" stop-color="#537f75"/></linearGradient><pattern id="windows" width="42" height="48" patternUnits="userSpaceOnUse"><rect x="13" y="13" width="15" height="22" rx="5" fill="#ffe7a4"/><path d="M20 13v22" stroke="#a58168" stroke-width="2"/></pattern></defs>
+<path fill="url(#sky)" d="M0 0h1600v1000H0z"/><circle cx="1320" cy="150" r="74" fill="#fff4c7"/>
+<g fill="#fff" opacity=".55"><ellipse cx="180" cy="160" rx="125" ry="25"/><ellipse cx="260" cy="140" rx="85" ry="38"/><ellipse cx="890" cy="110" rx="110" ry="27"/><ellipse cx="980" cy="95" rx="64" ry="33"/></g>
+<path d="M0 680Q240 460 550 660T1150 630T1600 580V1000H0" fill="#b6cdb1"/>
+<path d="M0 790Q310 570 600 800T1200 690T1600 740V1000H0" fill="url(#hill)"/>
+<g stroke="#425a61" stroke-width="5" stroke-linejoin="round">
+<g transform="translate(40 620)"><rect width="170" height="250" rx="12" fill="#e8bd8e"/><path d="M-15 0L85-90 185 0Z" fill="#ca735c"/><rect x="12" y="20" width="145" height="160" fill="url(#windows)" stroke="none"/><path d="M66 250v-56a20 20 0 0140 0v56" fill="#41747b"/></g>
+<g transform="translate(240 590)"><rect width="125" height="280" rx="10" fill="#dfc797"/><path d="M-10 0L62-90 135 0Z" fill="#577b89"/><rect x="5" y="15" width="114" height="210" fill="url(#windows)" stroke="none"/></g>
+<g transform="translate(1200 610)"><rect width="155" height="260" rx="12" fill="#efcd9e"/><path d="M-15 0L78-100 170 0Z" fill="#c17d62"/><rect x="10" y="15" width="135" height="205" fill="url(#windows)" stroke="none"/></g>
+<g transform="translate(1395 540)"><rect width="135" height="330" rx="10" fill="#a9b8bd"/><path d="M-12 0L67-100 147 0Z" fill="#5c718b"/><circle cx="68" cy="66" r="34" fill="#fff1c8"/><path d="M68 43v24l18 10" fill="none"/><rect x="8" y="125" width="120" height="155" fill="url(#windows)" stroke="none"/></g></g>
+<path d="M650 1000C640 900 1120 870 1050 780S710 730 830 650" fill="none" stroke="#d9c5a0" stroke-width="62"/><path d="M650 1000C640 900 1120 870 1050 780S710 730 830 650" fill="none" stroke="#f5e9cb" stroke-width="4" stroke-dasharray="12 16"/>
+<g fill="#4d7d69"><circle cx="435" cy="790" r="53"/><circle cx="1120" cy="840" r="51"/><circle cx="1550" cy="820" r="65"/><circle cx="20" cy="860" r="60"/></g>
+</svg>
