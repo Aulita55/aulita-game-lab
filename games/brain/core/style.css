@@ -77,7 +77,7 @@ h1,h2{font-family:var(--serif);margin:0;line-height:1.1;text-wrap:balance}
 @keyframes cheer{50%{transform:translateY(-14px) rotate(-3deg)}}
 .bubble{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink);padding:14px 18px;max-width:520px;text-align:left}
 .bubble b{font-family:var(--serif);font-size:18px}.bubble p{margin:6px 0 0;line-height:1.45;font-size:16px}
-.big-stars{font-size:46px;color:#f5b400;line-height:1;letter-spacing:4px}.big-stars span{color:#d8e0dc}
+.big-stars{font-size:46px;color:#f5b400;line-height:1;letter-spacing:4px}
 .result h2{font-size:30px}.record{margin:0;font-weight:700;color:var(--red-dark)}
 .result-grid{display:grid;grid-template-columns:repeat(3,minmax(84px,1fr));gap:8px;width:min(420px,100%)}
 .result-grid div{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 4px}
@@ -145,3 +145,60 @@ h1,h2{font-family:var(--serif);margin:0;line-height:1.1;text-wrap:balance}
 }
 @media (max-height:640px){.prompt{min-height:32px}.answer{min-height:46px}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Фирменная лапка и коврик */
+.rug{padding:clamp(6px,1.6vw,12px);background:#ffd3e2;border:4px solid var(--ink);border-radius:22px;box-shadow:0 5px 0 var(--ink),inset 0 0 0 3px #fff;gap:clamp(3px,.9vw,6px)}
+.rug .cell{background:#fff8e6;border:0;border-radius:clamp(7px,1.8vw,13px);box-shadow:inset 0 -3px 0 rgba(21,48,74,.12);transition:background .12s}
+.rug .cell.alt{background:#e4f6ec}
+.rug .cell.on{background:#fff0a8}.rug .cell.ok{background:#b6efd8}.rug .cell.no{background:#ff9a8c;animation:rug-no .3s}
+.rug .cell:active{transform:scale(.94)}
+.paw-img{width:84%!important;height:84%!important;transform:rotate(var(--tilt,0deg));animation:paw-in .22s cubic-bezier(.3,1.6,.6,1) both;filter:drop-shadow(0 2px 0 rgba(21,48,74,.2))}
+@keyframes paw-in{from{transform:rotate(var(--tilt,0deg)) scale(.2);opacity:0}}
+@keyframes rug-no{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.pop-level{color:#ff4f93;font-size:32px;top:30%;text-shadow:0 2px 0 #fff;white-space:nowrap}
+.hearts{font-size:13px;letter-spacing:1px;font-weight:400}
+
+/* Рыбки в аквариуме */
+.aqua{position:relative;width:min(100cqw,100cqh,300px);aspect-ratio:1;border:4px solid var(--ink);border-radius:30px;box-shadow:0 5px 0 var(--ink),inset 0 0 0 4px rgba(255,255,255,.65);background:linear-gradient(#d7f4ff,#a9e2fb 62%,#8fd6f6);overflow:hidden;animation:card-in .16s ease-out}
+.aqua .sand{position:absolute;left:-6%;right:-6%;bottom:-10%;height:27%;border-radius:50% 50% 0 0;background:#ffe9b0;border-top:4px solid #e9c778}
+.aqua .bub{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.95);animation:bub 2.6s ease-in-out infinite}
+.aqua .b1{width:9%;height:9%;left:12%;top:18%}.aqua .b2{width:6%;height:6%;left:24%;top:9%;animation-delay:.5s}.aqua .b3{width:7%;height:7%;right:10%;top:13%;animation-delay:1s}
+@keyframes bub{50%{transform:translateY(-9px)}}
+.fishy{position:absolute;left:8%;top:17%;width:84%;height:auto;animation:fish-bob 1.8s ease-in-out infinite;overflow:visible}
+.fish-tail{transform-origin:56px 82px;animation:fish-tail .7s ease-in-out infinite}
+.fish-fin{transform-origin:92px 94px;animation:fish-fin 1s ease-in-out infinite}
+@keyframes fish-bob{50%{transform:translateY(-6px) rotate(-2deg)}}
+@keyframes fish-tail{50%{transform:scaleX(.82)}}
+@keyframes fish-fin{50%{transform:rotate(14deg)}}
+
+/* Картинки вместо эмодзи: единый стиль, размер следует за размером текста */
+.st{display:inline-block;width:1.25em;height:1.25em;vertical-align:-.28em;background:center/contain no-repeat;overflow:hidden;white-space:nowrap;text-indent:3em;color:transparent;line-height:1;pointer-events:none;flex:none}
+.big-stars .st{width:1.05em;height:1.05em}
+.hearts .st{width:1.2em;height:1.2em}
+
+/* Лифт с посылками */
+.lift-house{background:repeating-linear-gradient(0deg,#ffe9c9 0 2px,#fff4dd 2px 34px)}
+.lift-world{position:absolute;left:0;right:0;bottom:0;height:0;will-change:transform}
+.lift-floor{position:absolute;left:0;right:0;border-bottom:5px solid var(--ink);background:linear-gradient(#fff8e6,#ffe9c9)}
+.lift-num{position:absolute;right:8px;top:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:3px solid var(--ink);border-radius:50%;background:#ffd84d;font:700 15px var(--sans)}
+.lift-guest{position:absolute;left:4%;bottom:0;height:62%;max-width:27%;object-fit:contain;object-position:bottom}
+.lift-bubble{position:absolute;left:30%;top:10%;display:flex;align-items:center;justify-content:center;width:clamp(50px,15vw,70px);height:clamp(50px,15vw,70px);background:#fff;border:3px solid var(--ink);border-radius:18px;font-size:clamp(28px,9vw,40px)}
+.lift-bubble.pick{left:7%;top:auto;bottom:6px;border-radius:12px;background:#ffd3e2}
+.lift-item{display:inline-flex;transition:transform .35s,opacity .35s}
+.lift-item.taken{transform:translateX(120px) scale(.4);opacity:0}.lift-item.given{transform:scale(1.5);opacity:0}
+.lift-shaft{position:absolute;top:0;bottom:0;left:56%;width:33%;background:#c7d4dc;border-inline:4px solid var(--ink);z-index:1}
+.lift-cabin{position:absolute;left:56%;width:33%;top:50%;height:clamp(110px,42%,180px);transform:translateY(-50%);z-index:2;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(#fff,#d7f4ff);border:4px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink)}
+.lift-cabin::before{content:'';position:absolute;top:-14px;left:50%;width:6px;height:10px;background:var(--ink)}
+.lift-cabin.glow{background:linear-gradient(#fffbd0,#ffe78a)}
+.lift-cabin img{height:82%;max-width:96%;object-fit:contain;object-position:bottom}
+.lift-count{position:absolute;left:-2px;right:-2px;top:-30px;padding:2px;text-align:center;font:700 clamp(10px,2.8vw,13px) var(--sans);background:#fff;border:2px solid var(--ink);border-radius:9px;white-space:nowrap}
+.lift-stop{min-height:62px}
+.lift-stop:disabled{opacity:.45;cursor:default}
+
+/* Размер картинок: заметные в клетках и на поле, аккуратные в тексте */
+.st{width:1.5em;height:1.5em;vertical-align:-.4em}
+.cell>.st{width:74%;height:74%}
+.prompt .st,.clues .st,.chip .st,.stars .st{width:1.25em;height:1.25em;vertical-align:-.28em}
+.big-card>.st{width:72%;height:72%}
+.tile .st{width:1.35em;height:1.35em}
+.lift-bubble:has(.taken){opacity:0;transition:opacity .35s .3s}

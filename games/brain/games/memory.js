@@ -1,38 +1,58 @@
 import { CATS } from '../core/catalog.js';
 import { beep, clamp, grid, h, pick, quiz, range, rnd, sample, shuffle, yesNo } from '../core/engine.js';
+import { FISH_COUNT, fishCard } from '../core/fish.js';
 
-const FISH = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦀', '🐚', '🦑'];
+const FISH = range(FISH_COUNT);
 const THINGS = ['🧸', '🎈', '🪀', '🧦', '🎩', '🪁', '📚', '🕯️', '🧵', '🔑', '🎁', '🥁', '🧢', '🪞', '⏰', '🖼️', '🎻', '🧺', '☂️', '🪑'];
 const heroIds = Object.keys(CATS);
 const catSrc = (id) => `img/${CATS[id].img}.webp`;
 
+const pawImg = () => h('img', { class: 'paw-img', src: 'img/paw.webp', alt: 'Лапка', style: { '--tilt': `${rnd(41) - 20}deg` } });
+// Кривая уровней без потолка: лапок становится больше, поле растёт, показ короче.
+function pawCurve(lv) {
+  const count = clamp(3 + Math.floor((lv - 1) / 2), 3, 30);
+  let n = 3;
+  while (count > n * n * 0.42 && n < 9) n++;
+  return { n, count, show: Math.max(350 + count * 170, 900 + count * 240 - lv * 12) };
+}
+
 function spatial(ctx, rotate) {
+  const paint = (c) => { c.replaceChildren(pawImg()); };
   function round() {
     ctx.clear();
     const lv = ctx.level;
-    const n = clamp(3 + Math.floor((lv - 1) / 3), 3, 6);
-    const count = clamp(2 + Math.ceil(lv * 0.8), 3, Math.floor(n * n * 0.6));
+    // «Кружащийся коврик» остаётся игрой на минуту, поэтому его кривая прежняя.
+    const old = { n: clamp(3 + Math.floor((lv - 1) / 3), 3, 6) };
+    const { n, count, show } = rotate
+      ? { n: old.n, count: clamp(2 + Math.ceil(lv * 0.8), 3, Math.floor(old.n * old.n * 0.6)), show: 900 + clamp(2 + Math.ceil(lv * 0.8), 3, Math.floor(old.n * old.n * 0.6)) * 240 }
+      : pawCurve(lv);
     const targets = new Set(sample(range(n * n), count));
     const left = new Set(targets);
-    let phase = 'show', misses = 0;
+    let phase = 'show';
     ctx.say('Запоминай лапки!');
-    const g = grid(ctx.board, n, n, (x, y, i) => h('button', { class: `cell ${targets.has(i) ? 'on' : ''}`, type: 'button', 'aria-label': `Клетка ${i + 1}`, onclick: (e) => tap(i, e.currentTarget) }, targets.has(i) ? '🐾' : ''));
+    const g = grid(ctx.board, n, n, (x, y, i) => h('button', { class: `cell ${(x + y) % 2 ? 'alt' : ''} ${targets.has(i) ? 'on' : ''}`, type: 'button', 'aria-label': `Клетка ${i + 1}`, onclick: (e) => tap(i, e.currentTarget) }, targets.has(i) ? pawImg() : ''));
+    g.root.classList.add('rug');
     g.root.style.transition = 'transform .6s ease';
     function tap(i, el) {
       if (phase !== 'recall' || el.classList.contains('ok')) return;
       if (targets.has(i)) {
-        left.delete(i); el.classList.add('ok'); el.textContent = '🐾'; beep(620);
-        if (!left.size) { phase = 'done'; ctx.good(count * 3); ctx.after(450, round); }
+        left.delete(i); el.classList.add('ok'); paint(el); beep(620);
+        if (left.size) ctx.say(`Где были лапки? Осталось: ${left.size}`);
+        else {
+          phase = 'done'; ctx.good(count * 3);
+          if (ctx.lives && ctx.level % 10 === 0) ctx.heal();
+          ctx.after(450, round);
+        }
       } else {
-        el.classList.add('no'); misses++; ctx.bad();
+        el.classList.add('no'); ctx.bad();
         phase = 'done';
-        g.cells.forEach((c, k) => { if (targets.has(k)) { c.textContent = '🐾'; c.classList.add('on'); } });
-        ctx.after(900, round);
+        g.cells.forEach((c, k) => { if (targets.has(k) && !c.classList.contains('ok')) { paint(c); c.classList.add('on'); } });
+        if (ctx.lives !== 0) ctx.after(1000, round);
       }
     }
-    ctx.after(900 + count * 240, () => {
-      g.cells.forEach((c) => { c.classList.remove('on'); c.textContent = ''; });
-      if (rotate) { const deg = pick([90, -90, 180]); g.root.style.transform = `rotate(${deg}deg)`; ctx.say('Коврик повернулся. Где были лапки?'); } else ctx.say('Где были лапки?');
+    ctx.after(show, () => {
+      g.cells.forEach((c) => { c.classList.remove('on'); c.replaceChildren(); });
+      if (rotate) { const deg = pick([90, -90, 180]); g.root.style.transform = `rotate(${deg}deg)`; ctx.say('Коврик повернулся. Где были лапки?'); } else ctx.say(`Где были лапки? Осталось: ${left.size}`);
       ctx.after(rotate ? 650 : 100, () => { phase = 'recall'; });
     });
     ctx.bot(() => { if (phase !== 'recall') return; const i = [...left][0]; if (i !== undefined) g.cells[i].click(); });
@@ -57,7 +77,7 @@ export const games = {
       const answer = canAsk && item === seq[seq.length - n];
       seq.push(item);
       ctx.clear();
-      ctx.board.append(h('div', { class: 'big-card' }, item));
+      ctx.board.append(fishCard(h, item));
       if (!canAsk) { ctx.say('Запоминай рыбку'); ctx.bot(null); ctx.after(1000, step); return; }
       ctx.say(n === 1 ? 'Такая же, как прошлая?' : `Такая же, как ${n} карточки назад?`);
       let lock = false;
@@ -271,7 +291,7 @@ export const games = {
       if (seq.length < 2) {
         seq.push(pick(set.filter((x) => x !== seq[0])));
         ctx.clear(); ctx.say('Запоминай рыбок');
-        ctx.board.append(h('div', { class: 'big-card' }, seq[seq.length - 1]));
+        ctx.board.append(fishCard(h, seq[seq.length - 1]));
         ctx.bot(null); ctx.after(900, step); return;
       }
       const one = seq[seq.length - 1], two = seq[seq.length - 2];
@@ -281,7 +301,7 @@ export const games = {
       const item = roll === 0 ? one : roll === 1 ? two : pick(fresh);
       seq.push(item);
       ctx.clear(); ctx.say('Эта рыбка была 1 или 2 карточки назад?');
-      ctx.board.append(h('div', { class: 'big-card' }, item));
+      ctx.board.append(fishCard(h, item));
       let lock = false;
       const answer = (v) => { if (lock) return; lock = true; if (v === roll) ctx.good(14); else ctx.bad(); ctx.after(v === roll ? 160 : 480, step); };
       const btns = LABELS.map((t, i) => h('button', { class: 'answer', type: 'button', onclick: () => answer(i) }, t));
@@ -292,51 +312,77 @@ export const games = {
     step();
   },
 
-  // Лифт с посылками: набор в сумке всё время меняется.
+  // Настоящий лифт: кабина с Рокки едет мимо этажей, а этажи проплывают сверху вниз.
   'lift-parcels': (ctx) => {
     const PARCELS = ['🧦', '🎩', '🧸', '🎈', '🧶', '🐟', '🥛', '🧀', '🔑', '🎁'];
     const bag = new Set();
-    function card(text, sub) {
-      ctx.board.replaceChildren(h('div', { class: 'col' }, h('div', { class: 'big-card', style: { width: 'min(46vw,170px)', fontSize: 'clamp(58px,18vw,90px)' } }, text), h('strong', {}, sub)));
-    }
+    let stopFn = () => {};
+    const stop = h('button', { class: 'answer btn-green lift-stop', type: 'button', onclick: () => stopFn() }, 'Стоп! Отдать посылку');
     function round() {
       if (!ctx.alive) return;
       ctx.clear(); bag.clear();
+      ctx.actions.classList.add('cols-1'); ctx.actions.append(stop);
       const lv = ctx.level;
       const take = sample(PARCELS, clamp(2 + (lv >> 1), 2, 6));
-      let i = 0;
-      ctx.say('Лифт едет вверх. Запоминай посылки!'); ctx.bot(null);
-      (function collect() {
-        if (i >= take.length) { ctx.after(280, () => floors(take)); return; }
-        bag.add(take[i]); card(take[i], `Посылка ${i + 1} из ${take.length}`); beep(520, 0.05);
-        i++; ctx.after(Math.max(520, 950 - lv * 35), collect);
-      })();
-    }
-    function floors(take) {
       const others = PARCELS.filter((x) => !take.includes(x));
-      // Часть посылок спросят дважды: после вручения её уже нет.
-      const stops = shuffle([...take, ...sample(others, clamp(take.length - 1, 1, others.length)), ...(ctx.level >= 5 ? [pick(take)] : [])]);
-      let idx = 0;
-      (function floor() {
-        if (!ctx.alive) return;
-        if (idx >= stops.length) { round(); return; }
-        const want = stops[idx++], has = bag.has(want), guest = pick(heroIds.filter((x) => x !== 'rocky'));
-        ctx.clear(); ctx.say(`Этаж ${idx + 1}. Такая посылка ещё в сумке?`);
-        ctx.board.append(h('div', { class: 'col' }, h('img', { src: catSrc(guest), alt: CATS[guest].name, style: { height: 'min(24cqh,120px)', objectFit: 'contain' } }), h('div', { class: 'big-card', style: { width: 'min(40vw,140px)', fontSize: 'clamp(50px,15vw,74px)' } }, want)));
-        let lock = false;
-        const go = (give) => {
-          if (lock) return; lock = true; off();
-          if (give === has) ctx.good(give ? 12 : 8); else ctx.bad();
-          if (give && has) bag.delete(want);
-          ctx.after(give === has ? 170 : 460, floor);
-        };
-        const off = ctx.after(Math.max(1500, 3400 - ctx.level * 160), () => go(false));
-        const pass = h('button', { class: 'answer btn-red', type: 'button', onclick: () => go(false) }, 'Ехать дальше');
-        const give = h('button', { class: 'answer btn-green', type: 'button', onclick: () => go(true) }, 'Отдать');
-        ctx.actions.classList.add('cols-2'); ctx.actions.append(pass, give);
-        ctx.keys({ ArrowLeft: () => go(false), ArrowRight: () => go(true) });
-        ctx.bot(() => (has ? give : pass).click());
-      })();
+      const asks = shuffle([...take, ...sample(others, clamp(take.length - 1, 1, others.length)), ...(lv >= 5 ? [pick(take)] : [])]);
+      const stops = take.slice(0, lv >= 6 ? -1 : undefined).map((item) => ({ type: 'pick', item }));
+      const later = asks.map((item) => ({ type: 'guest', item, cat: pick(heroIds.filter((x) => x !== 'rocky')) }));
+      if (lv >= 6) later.splice(rnd(later.length), 0, { type: 'pick', item: take[take.length - 1] });
+      const floors = [...stops, ...later];
+      const arena = h('div', { class: 'arena lift-house' });
+      const world = h('div', { class: 'lift-world' });
+      const cabin = h('div', { class: 'lift-cabin' }, h('img', { src: catSrc('rocky'), alt: CATS.rocky.name }), h('span', { class: 'lift-count' }));
+      arena.append(h('i', { class: 'lift-shaft' }), world, cabin);
+      ctx.board.append(arena);
+      const A = arena.clientHeight, H = Math.max(120, A * 0.6);
+      floors.forEach((f, i) => {
+        f.at = i * H + H / 2 - A / 2;
+        f.spot = h('span', { class: 'lift-item' }, f.item);
+        f.el = h('div', { class: 'lift-floor', style: { bottom: `${i * H}px`, height: `${H}px` } },
+          h('b', { class: 'lift-num' }, `${i + 1}`),
+          f.type === 'guest' ? h('img', { class: 'lift-guest', src: catSrc(f.cat), alt: CATS[f.cat].name }) : null,
+          h('span', { class: `lift-bubble ${f.type}` }, f.spot));
+        world.append(f.el);
+      });
+      const count = () => { cabin.lastChild.textContent = `В сумке: ${bag.size}`; };
+      count();
+      let pos = -H * 0.5, idx = 0, pause = 0, handled = false, active = false;
+      const secs = Math.max(1.35, 3.1 - lv * 0.13);
+      const windowPx = H * 0.36;
+      ctx.say('Лифт едет! Запоминай посылки');
+      stop.disabled = true;
+      const finishFloor = () => { idx++; handled = false; active = false; stop.disabled = true; cabin.classList.remove('glow'); };
+      stopFn = () => {
+        const f = floors[idx];
+        if (!f || f.type !== 'guest' || !active || handled) return;
+        handled = true; stop.disabled = true;
+        if (bag.has(f.item)) {
+          bag.delete(f.item); count(); ctx.good(14); f.spot.classList.add('given'); ctx.say('Посылка у гостя. Едем дальше!'); pause = 0.6;
+        } else { ctx.bad(); ctx.say('Такой посылки в сумке нет!'); pause = 0.75; }
+      };
+      const stopFrame = ctx.frame((dt) => {
+        if (pause > 0) { pause -= dt; return; }
+        pos += H / secs * dt;
+        world.style.transform = `translateY(${pos}px)`;
+        const f = floors[idx];
+        if (!f) { if (pos > floors[floors.length - 1].at + H) { stopFrame(); round(); } return; }
+        if (!active && pos >= f.at - windowPx) {
+          active = true; cabin.classList.add('glow');
+          if (f.type === 'pick') {
+            bag.add(f.item); count(); beep(520, 0.06); ctx.say('Рокки взял посылку. Запомни её!');
+            f.spot.classList.add('taken'); pause = 0.75; handled = true;
+          } else if (!handled) { stop.disabled = false; ctx.say('Эта посылка ещё в сумке?'); }
+        }
+        if (active && pos > f.at + windowPx) {
+          if (f.type === 'guest' && !handled) {
+            if (bag.has(f.item)) { ctx.bad(); ctx.say('Эта посылка была в сумке!'); } else ctx.good(8);
+          }
+          finishFloor();
+        }
+      });
+      ctx.keys({ ' ': stopFn, Enter: stopFn });
+      ctx.bot(() => { const f = floors[idx]; if (f && f.type === 'guest' && active && !handled && bag.has(f.item)) stopFn(); });
     }
     round();
   },

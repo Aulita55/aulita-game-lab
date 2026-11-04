@@ -42,7 +42,7 @@ export const MAX_LEVEL = 12;
 export function createRound({ host, meta, level = 1, duration, botMode = false, onEnd }) {
   const cleanups = new Set();
   const ctx = {
-    alive: true, level: clamp(level, 1, MAX_LEVEL), startLevel: level, peakLevel: level,
+    alive: true, level: clamp(level, 1, meta.lives ? Infinity : MAX_LEVEL), lives: meta.lives, startLevel: level, peakLevel: level,
     score: 0, right: 0, wrong: 0, streak: 0, missStreak: 0, botMode, botFn: null,
   };
 
@@ -50,10 +50,13 @@ export function createRound({ host, meta, level = 1, duration, botMode = false, 
   const timeEl = h('b', {}, '–');
   const levelEl = h('b', {}, String(ctx.level));
   const barEl = h('i');
+  const heartsEl = h('b', { class: 'hearts', 'aria-label': 'Жизни' });
+  const paintHearts = () => { heartsEl.textContent = '❤️'.repeat(ctx.lives || 0) + '🤍'.repeat(Math.max(0, (meta.lives || 0) - (ctx.lives || 0))); };
+  paintHearts();
   const hud = h('div', { class: 'hud' },
     h('span', { class: 'chip' }, '⭐ ', scoreEl),
     h('span', { class: 'chip' }, 'Уровень ', levelEl),
-    h('span', { class: 'chip chip-time' }, '⏱ ', timeEl),
+    h('span', { class: 'chip chip-time' }, meta.lives && duration === undefined ? heartsEl : ['⏱ ', timeEl]),
     h('span', { class: 'hud-bar' }, barEl));
   const prompt = h('div', { class: 'prompt', 'aria-live': 'polite' });
   const board = h('div', { class: 'board' });
@@ -87,8 +90,8 @@ export function createRound({ host, meta, level = 1, duration, botMode = false, 
     stage.append(p); setTimeout(() => p.remove(), 650);
   }
   function setLevel(v) {
-    const n = clamp(v, 1, MAX_LEVEL);
-    if (n > ctx.level) beep(880, 0.14, 'triangle');
+    const n = clamp(v, 1, meta.lives ? Infinity : MAX_LEVEL);
+    if (n > ctx.level) { beep(880, 0.14, 'triangle'); if (meta.lives) pop(`Уровень ${n}!`, 'pop-level'); }
     ctx.level = n; ctx.peakLevel = Math.max(ctx.peakLevel, n); levelEl.textContent = String(n);
   }
   ctx.good = (points = 10) => {
@@ -97,14 +100,19 @@ export function createRound({ host, meta, level = 1, duration, botMode = false, 
     ctx.score += gain; scoreEl.textContent = String(ctx.score);
     pop(`+${gain}`, 'pop-good'); beep(660 + Math.min(ctx.streak, 8) * 30, 0.09);
     stage.classList.remove('flash-bad'); stage.classList.add('flash-good'); setTimeout(() => stage.classList.remove('flash-good'), 180);
-    if (ctx.streak % 4 === 0) setLevel(ctx.level + 1);
+    if (ctx.streak % (meta.levelEvery || 4) === 0) setLevel(ctx.level + 1);
   };
   ctx.bad = () => {
     ctx.wrong++; ctx.streak = 0; ctx.missStreak++;
     pop('Мимо', 'pop-bad'); beep(170, 0.16, 'square', 0.035);
     stage.classList.remove('flash-good'); stage.classList.add('flash-bad'); setTimeout(() => stage.classList.remove('flash-bad'), 240);
-    if (ctx.missStreak % 2 === 0) setLevel(ctx.level - 1);
+    if (meta.lives) {
+      // В игре на жизни ошибка не отнимает уровень, а забирает сердечко.
+      ctx.lives--; paintHearts();
+      if (ctx.lives <= 0) ctx.after(1300, () => ctx.end());
+    } else if (ctx.missStreak % 2 === 0) setLevel(ctx.level - 1);
   };
+  ctx.heal = () => { if (ctx.lives < meta.lives) { ctx.lives++; paintHearts(); pop('+❤️', 'pop-good'); } };
 
   function stop() { ctx.alive = false; for (const off of cleanups) off(); cleanups.clear(); }
   ctx.end = () => {
@@ -114,6 +122,7 @@ export function createRound({ host, meta, level = 1, duration, botMode = false, 
   };
   ctx.destroy = stop;
 
+  if (meta.lives && duration === undefined) return ctx; // без таймера: играем, пока есть сердечки
   const total = duration ?? meta.time ?? 60;
   let left = total;
   timeEl.textContent = String(total);

@@ -1,8 +1,10 @@
 import { CATEGORIES, CATS, GAMES, playable } from './catalog.js';
 import { createRound, h, sound } from './engine.js';
 import * as store from './store.js';
+import { watchStickers } from './art.js';
 
 const app = document.getElementById('app');
+watchStickers(app);
 const params = new URLSearchParams(location.search);
 const testSeconds = params.get('t') ? Number(params.get('t')) : undefined;
 const HOME = '../../';
@@ -36,7 +38,7 @@ function card(game) {
     h('span', { class: 'card-art' }, h('span', { class: 'card-icon' }, game.icon), catImg(game.cat)),
     h('span', { class: 'card-body' },
       h('strong', {}, game.title), h('small', {}, game.tagline),
-      h('span', { class: 'stars' }, game.external ? 'Уже на сайте' : d.plays ? `${'★'.repeat(d.stars)}${'☆'.repeat(3 - d.stars)}  ·  рекорд ${d.best}` : 'Новая игра')));
+      h('span', { class: 'stars' }, game.external ? 'Уже на сайте' : d.plays ? `${'⭐'.repeat(d.stars)}${'☆'.repeat(3 - d.stars)}  ·  рекорд ${d.best}` : 'Новая игра')));
 }
 
 function viewHome() {
@@ -109,7 +111,7 @@ function viewIntro(meta, daily) {
   const box = h('div', { class: 'intro' },
     catImg(meta.cat, 'intro-cat'),
     h('div', { class: 'bubble' }, h('b', {}, `${CATS[meta.cat].name} объясняет`), h('p', {}, meta.how)),
-    d.plays ? h('p', { class: 'muted' }, `Рекорд: ${d.best}  ·  Начнём с уровня ${d.level}`) : null,
+    d.plays ? h('p', { class: 'muted' }, `Рекорд: ${d.best}  ·  ${meta.lives ? `Лучший уровень: ${d.topLevel || d.level}  ·  ` : ''}Начнём с уровня ${d.level}`) : null,
     h('button', { class: 'btn btn-red btn-big', type: 'button', id: 'start', onclick: () => viewPlay(meta, daily) }, '▶ Играть'));
   app.replaceChildren(gameFrame(meta, box, daily));
   window.scrollTo(0, 0);
@@ -133,7 +135,7 @@ function viewResult(meta, r, daily) {
   const phrase = stars === 3 ? 'Великолепно!' : stars === 2 ? 'Очень хорошо!' : stars === 1 ? 'Хорошее начало!' : 'Попробуем ещё раз?';
   const box = h('div', { class: 'result', id: 'result' },
     catImg(meta.cat, stars >= 2 ? 'intro-cat cheer' : 'intro-cat'),
-    h('div', { class: 'big-stars', 'aria-label': `Звёзд: ${stars}` }, '★'.repeat(stars), h('span', {}, '★'.repeat(3 - stars))),
+    h('div', { class: 'big-stars', 'aria-label': `Звёзд: ${stars}` }, '⭐'.repeat(stars), '☆'.repeat(3 - stars)),
     h('h2', {}, phrase),
     isBest && r.score > 0 ? h('p', { class: 'record' }, 'Новый рекорд!') : null,
     h('div', { class: 'result-grid' },
