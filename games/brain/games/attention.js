@@ -118,7 +118,7 @@ export const games = {
         const target = pick(nodes.leaves);
         const g = document.createElementNS(NS, 'g');
         const body = document.createElementNS(NS, 'circle'); body.setAttribute('r', 13); body.setAttribute('fill', target.color); body.setAttribute('stroke', '#15304a'); body.setAttribute('stroke-width', 3);
-        const face = document.createElementNS(NS, 'text'); face.setAttribute('text-anchor', 'middle'); face.setAttribute('dy', '6'); face.setAttribute('font-size', '15'); face.textContent = '🐱';
+        const face = document.createElementNS(NS, 'image'); face.setAttribute('href', `img/${pick(['tima', 'mia', 'lily', 'ponchik', 'felix'])}.webp`); face.setAttribute('x', -15); face.setAttribute('y', -19); face.setAttribute('width', 30); face.setAttribute('height', 34);
         g.append(body, face); layer.append(g);
         kittens.push({ g, target, at: nodes.root, from: { x: nodes.root.x, y: 8 }, t: 0, to: nodes.root });
       } else if (nextSpawn <= 0) { nextSpawn = 0.3; }

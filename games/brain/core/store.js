@@ -5,7 +5,7 @@ try { const raw = localStorage.getItem(KEY); if (raw) mem = { games: {}, days: {
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch { /* приватный режим */ } };
 
 export const today = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-export const gameData = (id) => mem.games[id] || { best: 0, plays: 0, level: 1, stars: 0, recent: [] };
+export const gameData = (id) => mem.games[id] || { best: 0, plays: 0, level: 1, topLevel: 1, stars: 0, recent: [] };
 export const dayData = (k = today()) => mem.days[k] || { done: [] };
 
 export function starsFor(r) {
@@ -23,7 +23,8 @@ export function record(id, r) {
   g.plays++; g.stars = Math.max(g.stars, stars);
   // Следующая игра начинается чуть ниже достигнутого, чтобы был разгон.
   g.level = Math.max(1, r.level - 1);
-  const form = Math.round((r.accuracy * 0.6 + (r.peakLevel / 12) * 0.4) * 100);
+  g.topLevel = Math.max(g.topLevel || 1, r.peakLevel);
+  const form = Math.round((r.accuracy * 0.6 + (Math.min(r.peakLevel, 12) / 12) * 0.4) * 100);
   g.recent = [...(g.recent || []), form].slice(-5);
   mem.games[id] = g;
   const k = today();

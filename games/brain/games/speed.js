@@ -1,7 +1,5 @@
 import { beep, clamp, grid, h, pick, quiz, range, rnd, sample, shuffle, yesNo } from '../core/engine.js';
 
-const SNACKS = ['🐟', '🧀', '🥛', '🍗', '🥚', '🍤', '🥩', '🍪'];
-
 // Подсказка-разделитель: на первой карточке отвечать не нужно.
 function firstThenAsk(ctx, render, nextValue, same, question = 'Такая же, как прошлая?') {
   let prev = nextValue(null);
@@ -36,15 +34,6 @@ function miniGrid(n, rows, filled) {
 }
 
 export const games = {
-  'same-fish': (ctx) => {
-    const set = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦀'];
-    firstThenAsk(ctx, (v) => ctx.board.append(h('div', { class: 'big-card' }, v)), (prev, want) => {
-      if (prev === null) return pick(set);
-      if (want) return prev;
-      let n = pick(set); while (n === prev) n = pick(set); return n;
-    }, (a, b) => a === b);
-  },
-
   'same-spot': (ctx) => {
     const animals = ['🐭', '🐹', '🐰', '🦔', '🐿️'];
     const render = (v) => {
@@ -59,20 +48,6 @@ export const games = {
       let pos = rnd(n * n); while (pos === prev.pos) pos = rnd(n * n);
       return { n, pos, who: Math.random() < 0.5 ? prev.who : pick(animals) };
     }, (a, b) => a.pos === b.pos && a.n === b.n, 'Зверёк в том же окошке?');
-  },
-
-  feeders: (ctx) => {
-    quiz(ctx, (lv) => {
-      const count = lv < 4 ? 3 : lv < 8 ? 4 : 6;
-      const bowls = SNACKS.slice(0, count);
-      const want = pick(bowls);
-      return {
-        say: 'Нажми такую же миску!', cols: count === 6 ? 6 : count,
-        show: (b) => b.append(h('div', { class: 'big-card' }, want)),
-        options: bowls.map((x) => ({ label: x, ok: x === want, cls: 'big' })),
-        points: 7,
-      };
-    }, { pause: 80, badPause: 320 });
   },
 
   scooter: (ctx) => {
