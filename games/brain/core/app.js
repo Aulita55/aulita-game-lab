@@ -140,11 +140,13 @@ function viewResult(meta, r, daily) {
       h('div', {}, h('b', {}, String(r.score)), h('span', {}, 'очков')),
       h('div', {}, h('b', {}, `${pct}%`), h('span', {}, 'точность')),
       h('div', {}, h('b', {}, String(r.peakLevel)), h('span', {}, 'уровень'))),
-    h('div', { class: 'result-actions' },
+    h('div', { class: 'result-actions', style: { pointerEvents: 'none' } },
       h('button', { class: 'btn btn-red', type: 'button', onclick: () => viewPlay(meta, daily) }, 'Ещё раз'),
       daily && next ? h('a', { class: 'btn btn-green', href: `#/g/${next.id}?daily=1` }, 'Следующая') : null,
       h('a', { class: 'btn btn-blue', href: '#/' }, 'Все игры')));
   app.replaceChildren(gameFrame(meta, box, daily));
+  // Игрок мог нажимать до последней секунды: случайное нажатие не должно сразу увести с итогов.
+  setTimeout(() => { box.querySelector('.result-actions').style.pointerEvents = ''; }, 700);
   current = null;
   window.scrollTo(0, 0);
 }
