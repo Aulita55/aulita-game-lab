@@ -260,4 +260,84 @@ export const games = {
     }
     round();
   },
+
+  // Две карточки назад и одна назад одновременно: держим в уме сразу обе.
+  'fish-turbo': (ctx) => {
+    const seq = [];
+    const LABELS = ['1 назад', '2 назад', 'Новая'];
+    function step() {
+      if (!ctx.alive) return;
+      const set = FISH.slice(0, clamp(4 + (ctx.level >> 1), 4, FISH.length));
+      if (seq.length < 2) {
+        seq.push(pick(set.filter((x) => x !== seq[0])));
+        ctx.clear(); ctx.say('Запоминай рыбок');
+        ctx.board.append(h('div', { class: 'big-card' }, seq[seq.length - 1]));
+        ctx.bot(null); ctx.after(900, step); return;
+      }
+      const one = seq[seq.length - 1], two = seq[seq.length - 2];
+      // Если две прошлые совпали, ответ стал бы двусмысленным, поэтому даём новую рыбку.
+      const roll = one === two ? 2 : Math.random() < 0.3 ? 0 : Math.random() < 0.5 ? 1 : 2;
+      const fresh = set.filter((x) => x !== one && x !== two);
+      const item = roll === 0 ? one : roll === 1 ? two : pick(fresh);
+      seq.push(item);
+      ctx.clear(); ctx.say('Эта рыбка была 1 или 2 карточки назад?');
+      ctx.board.append(h('div', { class: 'big-card' }, item));
+      let lock = false;
+      const answer = (v) => { if (lock) return; lock = true; if (v === roll) ctx.good(14); else ctx.bad(); ctx.after(v === roll ? 160 : 480, step); };
+      const btns = LABELS.map((t, i) => h('button', { class: 'answer', type: 'button', onclick: () => answer(i) }, t));
+      ctx.actions.classList.add('cols-3'); ctx.actions.append(...btns);
+      ctx.keys({ 1: () => answer(0), 2: () => answer(1), 3: () => answer(2) });
+      ctx.bot(() => btns[roll].click());
+    }
+    step();
+  },
+
+  // Лифт с посылками: набор в сумке всё время меняется.
+  'lift-parcels': (ctx) => {
+    const PARCELS = ['🧦', '🎩', '🧸', '🎈', '🧶', '🐟', '🥛', '🧀', '🔑', '🎁'];
+    const bag = new Set();
+    function card(text, sub) {
+      ctx.board.replaceChildren(h('div', { class: 'col' }, h('div', { class: 'big-card', style: { width: 'min(46vw,170px)', fontSize: 'clamp(58px,18vw,90px)' } }, text), h('strong', {}, sub)));
+    }
+    function round() {
+      if (!ctx.alive) return;
+      ctx.clear(); bag.clear();
+      const lv = ctx.level;
+      const take = sample(PARCELS, clamp(2 + (lv >> 1), 2, 6));
+      let i = 0;
+      ctx.say('Лифт едет вверх. Запоминай посылки!'); ctx.bot(null);
+      (function collect() {
+        if (i >= take.length) { ctx.after(280, () => floors(take)); return; }
+        bag.add(take[i]); card(take[i], `Посылка ${i + 1} из ${take.length}`); beep(520, 0.05);
+        i++; ctx.after(Math.max(520, 950 - lv * 35), collect);
+      })();
+    }
+    function floors(take) {
+      const others = PARCELS.filter((x) => !take.includes(x));
+      // Часть посылок спросят дважды: после вручения её уже нет.
+      const stops = shuffle([...take, ...sample(others, clamp(take.length - 1, 1, others.length)), ...(ctx.level >= 5 ? [pick(take)] : [])]);
+      let idx = 0;
+      (function floor() {
+        if (!ctx.alive) return;
+        if (idx >= stops.length) { round(); return; }
+        const want = stops[idx++], has = bag.has(want), guest = pick(heroIds.filter((x) => x !== 'rocky'));
+        ctx.clear(); ctx.say(`Этаж ${idx + 1}. Такая посылка ещё в сумке?`);
+        ctx.board.append(h('div', { class: 'col' }, h('img', { src: catSrc(guest), alt: CATS[guest].name, style: { height: 'min(24cqh,120px)', objectFit: 'contain' } }), h('div', { class: 'big-card', style: { width: 'min(40vw,140px)', fontSize: 'clamp(50px,15vw,74px)' } }, want)));
+        let lock = false;
+        const go = (give) => {
+          if (lock) return; lock = true; off();
+          if (give === has) ctx.good(give ? 12 : 8); else ctx.bad();
+          if (give && has) bag.delete(want);
+          ctx.after(give === has ? 170 : 460, floor);
+        };
+        const off = ctx.after(Math.max(1500, 3400 - ctx.level * 160), () => go(false));
+        const pass = h('button', { class: 'answer btn-red', type: 'button', onclick: () => go(false) }, 'Ехать дальше');
+        const give = h('button', { class: 'answer btn-green', type: 'button', onclick: () => go(true) }, 'Отдать');
+        ctx.actions.classList.add('cols-2'); ctx.actions.append(pass, give);
+        ctx.keys({ ArrowLeft: () => go(false), ArrowRight: () => go(true) });
+        ctx.bot(() => (has ? give : pass).click());
+      })();
+    }
+    round();
+  },
 };

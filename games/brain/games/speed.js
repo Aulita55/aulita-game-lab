@@ -233,4 +233,114 @@ export const games = {
     }
     round();
   },
+
+  // Три ответа вместо двух: совпало всё, половина или ничего.
+  'fish-flash': (ctx) => {
+    const FISHES = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦀'];
+    const BACKS = ['#ffd9d3', '#c9f4e4', '#cfe4ff', '#fff0b3'];
+    const show = (b, v) => b.append(h('div', { class: 'big-card', style: { background: v.bg } }, v.f));
+    const other = (set, x) => pick(set.filter((y) => y !== x));
+    let prev = { f: pick(FISHES), bg: pick(BACKS) };
+    ctx.clear(); ctx.say('Запоминай первую карточку'); show(ctx.board, prev);
+    ctx.after(900, () => quiz(ctx, () => {
+      const kind = rnd(3);
+      const half = Math.random() < 0.5;
+      const cur = kind === 0 ? { ...prev } : kind === 1 ? (half ? { f: prev.f, bg: other(BACKS, prev.bg) } : { f: other(FISHES, prev.f), bg: prev.bg }) : { f: other(FISHES, prev.f), bg: other(BACKS, prev.bg) };
+      prev = cur;
+      return {
+        say: 'Сравни с прошлой карточкой', cols: 3, points: 11, show: (b) => show(b, cur),
+        keys: { ArrowLeft: 0, ArrowDown: 1, ArrowRight: 2 },
+        options: [{ label: 'Всё то же', ok: kind === 0 }, { label: 'Часть', ok: kind === 1 }, { label: 'Всё другое', ok: kind === 2 }],
+      };
+    }, { pause: 90, badPause: 340 }));
+  },
+
+  // Прямая через центр тарелки должна разделить угощение поровну.
+  'fair-split': (ctx) => {
+    const TREATS = ['🐟', '🍪', '🧀', '🍤'];
+    function round() {
+      if (!ctx.alive) return;
+      ctx.clear();
+      const half = clamp(2 + (ctx.level >> 1), 2, 9);
+      const icon = pick(TREATS), solution = rnd(180);
+      const pts = [];
+      for (const side of [0, 1]) {
+        let placed = 0, tries = 0;
+        while (placed < half && tries++ < 3000) {
+          const a = (solution + 20 + Math.random() * 140 + side * 180) * Math.PI / 180;
+          const r = 0.26 + Math.random() * 0.62;
+          const p = { x: Math.cos(a) * r, y: Math.sin(a) * r };
+          if (pts.every((q) => Math.hypot(q.x - p.x, q.y - p.y) > 0.25)) { pts.push(p); placed++; }
+        }
+      }
+      const countSides = (deg) => {
+        const a = deg * Math.PI / 180, nx = -Math.sin(a), ny = Math.cos(a);
+        return pts.reduce((c, p) => { c[p.x * nx + p.y * ny > 0 ? 0 : 1]++; return c; }, [0, 0]);
+      };
+      let angle = rnd(180), guard = 0;
+      while (guard++ < 40 && countSides(angle)[0] === countSides(angle)[1]) angle = rnd(180);
+      let done = false;
+      ctx.say('Проведи палочку так, чтобы котятам досталось поровну');
+      const line = h('div', { style: { position: 'absolute', left: '-2%', right: '-2%', top: 'calc(50% - 3px)', height: '6px', borderRadius: '6px', background: 'var(--ink)', pointerEvents: 'none' } });
+      const plate = h('div', { style: { position: 'relative', width: 'min(100cqw,100cqh)', aspectRatio: '1', maxWidth: '440px', borderRadius: '50%', border: '4px solid var(--ink)', background: '#fffbe9', touchAction: 'none', cursor: 'grab', flex: 'none' } }, line);
+      pts.forEach((p) => plate.append(h('span', { class: 'sprite', style: { left: `${50 + p.x * 45}%`, top: `${50 + p.y * 45}%`, transform: 'translate(-50%,-50%)', fontSize: 'clamp(20px,6vw,30px)', pointerEvents: 'none' } }, icon)));
+      ctx.board.append(plate);
+      const paint = () => { line.style.transform = `rotate(${angle}deg)`; };
+      paint();
+      let drag = false;
+      const aim = (e) => { const r = plate.getBoundingClientRect(); angle = ((Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2) * 180 / Math.PI) + 360) % 180; paint(); };
+      ctx.on(plate, 'pointerdown', (e) => { if (done) return; drag = true; plate.setPointerCapture(e.pointerId); aim(e); });
+      ctx.on(plate, 'pointermove', (e) => { if (drag && !done) aim(e); });
+      ctx.on(plate, 'pointerup', () => { drag = false; });
+      const turn = (d) => { if (done) return; angle = (angle + d + 180) % 180; paint(); };
+      const submit = () => {
+        if (done) return; done = true;
+        const [a, b] = countSides(angle);
+        if (a === b) { ctx.say(`Поровну: ${a} и ${b}!`); ctx.good(10 + half * 3); } else { ctx.say(`Не поровну: ${a} и ${b}`); ctx.bad(); }
+        ctx.after(a === b ? 520 : 1000, round);
+      };
+      const ok = h('button', { class: 'answer btn-green', type: 'button', onclick: submit }, 'Готово');
+      ctx.actions.classList.add('cols-3');
+      ctx.actions.append(h('button', { class: 'answer big', type: 'button', 'aria-label': 'Повернуть влево', onclick: () => turn(-6) }, '↺'), ok, h('button', { class: 'answer big', type: 'button', 'aria-label': 'Повернуть вправо', onclick: () => turn(6) }, '↻'));
+      ctx.keys({ ArrowLeft: () => turn(-6), ArrowRight: () => turn(6), Enter: submit, ' ': submit });
+      ctx.bot(() => { angle = solution; paint(); ok.click(); });
+    }
+    round();
+  },
+
+  // В реке всплывают звери: один из них уже был в прошлый раз.
+  'river-patrol': (ctx) => {
+    const ANIMALS = ['🦆', '🐸', '🐢', '🦢', '🐟', '🦀', '🐊', '🦩', '🐧', '🐙', '🦦', '🐳'];
+    let last = [];
+    const spots = (k) => sample(range(12), k).map((i) => ({ x: 6 + (i % 4) * 23, y: 6 + Math.floor(i / 4) * 31 }));
+    function round() {
+      if (!ctx.alive) return;
+      ctx.clear();
+      const lv = ctx.level;
+      const k = clamp(2 + (lv >> 2), 2, 5);
+      const first = last.length === 0;
+      const seen = first ? null : pick(last);
+      const list = first ? sample(ANIMALS, k) : shuffle([seen, ...sample(ANIMALS.filter((x) => !last.includes(x)), k - 1)]);
+      last = list;
+      ctx.say(first ? 'Запоминай, кто всплыл' : 'Кто уже был в прошлый раз?');
+      const arena = h('div', { class: 'arena', style: { background: 'repeating-linear-gradient(170deg,#a8ddf5 0 26px,#97d3ef 26px 52px)' } });
+      ctx.board.append(arena);
+      let done = false, stopDrift = () => {};
+      const finish = (right, el) => {
+        if (done) return; done = true; stopTimer(); stopDrift();
+        if (right) ctx.good(10 + k * 2); else { ctx.bad(); if (el) el.style.opacity = '.4'; buttons[list.indexOf(seen)].style.background = '#7fe3bf'; }
+        ctx.after(right ? 220 : 800, round);
+      };
+      const place = spots(k);
+      const buttons = list.map((a, i) => {
+        const b = h('button', { class: 'sprite', type: 'button', 'aria-label': 'Зверёк', style: { left: `${place[i].x}%`, top: `${place[i].y}%`, width: 'clamp(58px,17vw,84px)', height: 'clamp(58px,17vw,84px)', fontSize: 'clamp(36px,11vw,54px)', background: 'rgba(255,255,255,.45)', border: 0, borderRadius: '50%', cursor: 'pointer', padding: 0 }, onclick: (e) => { if (!first) finish(a === seen, e.currentTarget); } }, a);
+        arena.append(b); return b;
+      });
+      const speed = 8 + lv * 2.4; let t = 0;
+      stopDrift = ctx.frame((dt) => { t += dt; buttons.forEach((b, i) => { b.style.transform = `translate(${Math.sin(t * 0.9 + i) * speed}px,${Math.cos(t * 0.7 + i * 2) * 6}px)`; }); });
+      const stopTimer = ctx.after(first ? 1500 : Math.max(1500, 3600 - lv * 170), () => { if (first) { done = true; stopDrift(); round(); } else finish(false); });
+      ctx.bot(first ? null : () => buttons[list.indexOf(seen)].click());
+    }
+    round();
+  },
 };

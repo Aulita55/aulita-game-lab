@@ -127,4 +127,24 @@ export const games = {
       };
     }, { pause: 140, badPause: 500 });
   },
+
+  // Четыре окна, четыре вопроса: подсказка только на самом окне.
+  'four-windows': (ctx) => {
+    const WINDOWS = [
+      ['Чётное?', (c) => c.n % 2 === 0], ['Больше 5?', (c) => c.n > 5],
+      ['Тёплый цвет?', (c) => c.warm], ['Кружок?', (c) => c.round],
+    ];
+    quiz(ctx, (lv) => {
+      const task = rnd(4);
+      const c = { n: pick([1, 2, 3, 4, 6, 7, 8, 9]), warm: Math.random() < 0.5, round: Math.random() < 0.5 };
+      const color = c.warm ? pick(['#ff543e', '#ff9b4a', '#e9a800']) : pick(['#368cf4', '#2fb3a0', '#7a6ff0']);
+      return {
+        say: lv < 4 ? `В этом окне вопрос: ${WINDOWS[task][0]}` : 'Отвечай на вопрос того окна, где карточка', cols: 2, points: 11,
+        show: (b) => b.append(h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '8px', width: '100%', height: '100%', maxWidth: '460px' } }, ...WINDOWS.map(([label], i) => h('div', { style: { position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, border: '3px solid var(--ink)', borderRadius: '14px', background: i === task ? '#fff8d8' : '#f2f2ef' } },
+          h('small', { style: { position: 'absolute', top: '4px', left: 0, right: 0, textAlign: 'center', fontSize: 'clamp(11px,3vw,13px)', fontWeight: 700, color: i === task ? 'var(--ink)' : '#7c8c8c' } }, label),
+          i === task ? h('span', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: 'clamp(46px,14vw,70px)', height: 'clamp(46px,14vw,70px)', marginTop: '14px', borderRadius: c.round ? '50%' : '10px', background: color, color: '#fff', font: "700 clamp(26px,8vw,40px) Georgia,serif" } }, String(c.n)) : null)))),
+        options: yesNo(WINDOWS[task][1](c)),
+      };
+    }, { pause: 110, badPause: 460 });
+  },
 };

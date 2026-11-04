@@ -394,4 +394,94 @@ function milkPipes(ctx) {
   round();
 }
 
-export const games = { homeward, mosaic, queue, treasure, 'milk-pipes': milkPipes };
+export const games = { homeward, mosaic, queue, treasure, 'milk-pipes': milkPipes,
+
+  // Рассадить овощи по правилам или доказать, что правила несовместимы.
+  'garden-rules': (ctx) => {
+    const SEEDS = ['🥕', '🍅', '🌽', '🥒', '🍆'];
+    const perms = (a) => (a.length < 2 ? [a] : a.flatMap((v, i) => perms([...a.slice(0, i), ...a.slice(i + 1)]).map((p) => [v, ...p])));
+    const posOf = (arr) => { const p = {}; arr.forEach((s, i) => { p[s] = i; }); return p; };
+    function makeRule(seeds, lv) {
+      const [a, b] = sample(seeds, 2), n = seeds.length, i = rnd(n), j = rnd(n);
+      const kinds = ['left', 'next', 'far', 'at', 'notAt', ...(lv >= 3 ? ['if', 'if'] : [])];
+      const kind = pick(kinds);
+      if (kind === 'left') return { text: `${a} левее ${b}`, test: (p) => p[a] < p[b] };
+      if (kind === 'next') return { text: `${a} рядом с ${b}`, test: (p) => Math.abs(p[a] - p[b]) === 1 };
+      if (kind === 'far') return { text: `${a} не рядом с ${b}`, test: (p) => Math.abs(p[a] - p[b]) !== 1 };
+      if (kind === 'at') return { text: `${a} на грядке ${i + 1}`, test: (p) => p[a] === i };
+      if (kind === 'notAt') return { text: `${a} не на грядке ${i + 1}`, test: (p) => p[a] !== i };
+      return { text: `Если ${a} на грядке ${i + 1}, то ${b} на грядке ${j + 1}`, test: (p) => p[a] !== i || p[b] === j };
+    }
+    function puzzle(lv) {
+      const n = lv < 4 ? 3 : lv < 8 ? 4 : 5;
+      const seeds = sample(SEEDS, n);
+      const all = perms(seeds);
+      const secret = pick(all);
+      const fixed = lv >= 2 && Math.random() < 0.6 ? rnd(n) : -1;
+      let sols = all.filter((a) => fixed < 0 || a[fixed] === secret[fixed]);
+      const rules = [];
+      for (let t = 0; t < 200 && sols.length > 2 && rules.length < n + 1; t++) {
+        const r = makeRule(seeds, lv);
+        if (!r.test(posOf(secret)) || rules.some((x) => x.text === r.text)) continue;
+        const next = sols.filter((a) => r.test(posOf(a)));
+        if (next.length < sols.length) { rules.push(r); sols = next; }
+      }
+      if (!rules.length) rules.push({ text: `${secret[0]} на грядке 1`, test: (p) => p[secret[0]] === 0 });
+      sols = sols.filter((a) => rules.every((r) => r.test(posOf(a))));
+      let impossible = false;
+      if (lv >= 4 && Math.random() < 0.22) {
+        for (let t = 0; t < 120 && !impossible; t++) {
+          const r = makeRule(seeds, lv);
+          if (!rules.some((x) => x.text === r.text) && !sols.some((a) => r.test(posOf(a))) && all.some((a) => r.test(posOf(a)))) { rules.push(r); impossible = true; }
+        }
+      }
+      return { n, seeds, secret, fixed, rules: shuffle(rules), impossible, sols };
+    }
+    function round() {
+      if (!ctx.alive) return;
+      ctx.clear();
+      const lv = ctx.level, t = puzzle(lv);
+      const arr = Array(t.n).fill(null);
+      if (t.fixed >= 0) arr[t.fixed] = t.secret[t.fixed];
+      let sel = null, done = false;
+      ctx.say('Рассади овощи так, чтобы все правила выполнялись');
+      const slots = h('div', { class: 'tiles' });
+      const shelf = h('div', { class: 'tiles' });
+      ctx.board.append(h('div', { class: 'col', style: { justifyContent: 'flex-start', overflow: 'auto' } },
+        h('ul', { class: 'clues', style: { paddingLeft: '22px' } }, ...t.rules.map((r) => h('li', {}, r.text))), slots, shelf));
+      function paint() {
+        slots.replaceChildren(...arr.map((s, i) => h('button', { class: `tile ${i === t.fixed ? 'ok' : ''}`, type: 'button', 'aria-label': `Грядка ${i + 1}`, style: { display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.1, minWidth: 'clamp(50px,15vw,70px)' }, onclick: () => place(i) }, h('span', { style: { fontSize: '11px', fontWeight: 400 } }, String(i + 1)), s || '·')));
+        shelf.replaceChildren(...t.seeds.filter((s) => !arr.includes(s)).map((s) => h('button', { class: `tile ${s === sel ? 'sel' : ''}`, type: 'button', onclick: () => { sel = s === sel ? null : s; paint(); } }, s)));
+      }
+      function place(i) {
+        if (done || i === t.fixed) return;
+        if (sel) { if (arr[i]) arr[arr.indexOf(arr[i])] = null; arr[i] = sel; sel = null; } else arr[i] = null;
+        beep(500, 0.04); paint();
+      }
+      function finish(right, keep) {
+        done = true;
+        if (right) ctx.good(12 + t.n * 3); else ctx.bad();
+        if (!right && !keep) {
+          if (t.impossible) ctx.say('Здесь правила спорят друг с другом: решения нет');
+          else { t.sols[0].forEach((s, i) => { arr[i] = s; }); paint(); ctx.say('Вот как можно было рассадить'); }
+        }
+        ctx.after(right ? 600 : 1900, round);
+      }
+      const check = () => {
+        if (done) return;
+        if (arr.includes(null)) { ctx.say('Сначала заполни все грядки'); return; }
+        finish(!t.impossible && t.rules.every((r) => r.test(posOf(arr))));
+      };
+      const never = () => { if (!done) finish(t.impossible); };
+      const checkBtn = h('button', { class: 'answer btn-green', type: 'button', onclick: check }, 'Проверить');
+      const neverBtn = h('button', { class: 'answer btn-red', type: 'button', onclick: never }, 'Невозможно');
+      ctx.actions.classList.add(lv >= 4 ? 'cols-2' : 'cols-1');
+      if (lv >= 4) ctx.actions.append(neverBtn);
+      ctx.actions.append(checkBtn);
+      ctx.keys({ Enter: check });
+      paint();
+      ctx.bot(() => { if (done) return; if (t.impossible) { neverBtn.click(); return; } t.sols[0].forEach((s, i) => { arr[i] = s; }); paint(); checkBtn.click(); });
+    }
+    round();
+  },
+};

@@ -307,4 +307,106 @@ export const games = {
     }
     round();
   },
+
+  // Взгляд держим на котике в центре, а числа вспыхивают вокруг него.
+  'roof-numbers': (ctx) => {
+    function round() {
+      if (!ctx.alive) return;
+      ctx.clear();
+      const lv = ctx.level, n = lv < 5 ? 3 : 5, center = Math.floor(n * n / 2);
+      const count = clamp(2 + (lv >> 1), 2, n === 3 ? 6 : 8);
+      const free = range(n * n).filter((i) => i !== center);
+      const spots = sample(lv < 5 ? free : free.filter((i) => { const x = i % n, y = Math.floor(i / n); return x === 0 || y === 0 || x === n - 1 || y === n - 1 || Math.random() < 0.4; }), count);
+      const values = sample(range(lv < 6 ? 9 : 40).map((v) => v + 1), count).sort((a, b) => a - b);
+      const at = new Map(shuffle(spots).map((s, i) => [s, values[i]]));
+      let phase = 'look', nextIdx = 0;
+      ctx.say('Смотри на котика. Числа вспыхнут вокруг');
+      const g = grid(ctx.board, n, n, (x, y, i) => (i === center
+        ? h('div', { class: 'cell static', style: { background: '#fff' } }, h('img', { src: 'img/mia.webp', alt: 'Мия' }))
+        : h('button', { class: 'cell', type: 'button', 'aria-label': `Клетка ${i + 1}`, onclick: (e) => tap(i, e.currentTarget) })));
+      function tap(i, el) {
+        if (phase !== 'recall' || el.classList.contains('ok')) return;
+        if (at.get(i) === values[nextIdx]) {
+          el.classList.add('ok'); el.textContent = String(values[nextIdx]); nextIdx++; beep(560 + nextIdx * 40, 0.06);
+          if (nextIdx === count) { phase = 'done'; ctx.good(count * 4); ctx.after(450, round); }
+        } else {
+          phase = 'done'; el.classList.add('no'); ctx.bad();
+          at.forEach((v, s) => { g.cells[s].textContent = String(v); g.cells[s].classList.add('on'); });
+          ctx.after(1100, round);
+        }
+      }
+      ctx.after(650, () => {
+        at.forEach((v, s) => { g.cells[s].textContent = String(v); g.cells[s].classList.add('on'); });
+        ctx.after(Math.max(420, 1500 - lv * 90), () => {
+          at.forEach((v, s) => { g.cells[s].textContent = ''; g.cells[s].classList.remove('on'); });
+          ctx.say('Нажми от меньшего числа к большему'); phase = 'recall';
+        });
+      });
+      ctx.bot(() => { if (phase !== 'recall') return; for (const [s, v] of at) if (v === values[nextIdx]) { g.cells[s].click(); return; } });
+    }
+    round();
+  },
+
+  // Мышата бегут по полю, а клубок мягко разводит их в стороны.
+  'mouse-paths': (ctx) => {
+    ctx.clear();
+    const arena = h('div', { class: 'arena', style: { background: '#e5f4d6', touchAction: 'none', cursor: 'pointer' } });
+    ctx.board.append(arena);
+    const SIZE = 38;
+    let mice = [], charges = 1, recharge = 0, safe = 0, shown = -1;
+    const say = () => { const m = Math.max(1, 1 + (ctx.level >> 2)); if (shown !== charges + m * 100) { shown = charges + m * 100; ctx.say(`Не дай мышатам столкнуться. Клубков: ${charges} из ${m}`); } };
+    function addMouse() {
+      const a = Math.random() * Math.PI * 2;
+      const el = h('div', { class: 'sprite', style: { left: 0, top: 0, width: `${SIZE}px`, height: `${SIZE}px`, fontSize: '30px', pointerEvents: 'none' } }, '🐭');
+      arena.append(el);
+      let x, y, tries = 0;
+      const W = arena.clientWidth, H = arena.clientHeight;
+      do { x = SIZE + Math.random() * (W - SIZE * 2); y = SIZE + Math.random() * (H - SIZE * 2); } while (tries++ < 30 && mice.some((m) => Math.hypot(m.x - x, m.y - y) < SIZE * 2.5));
+      mice.push({ x, y, a, el, hit: 0 });
+    }
+    function drop(px, py) {
+      if (charges <= 0) { beep(180, 0.06, 'square', 0.03); return; }
+      charges--; shown = -1; beep(420, 0.07);
+      const yarn = h('div', { class: 'sprite', style: { left: `${px - 18}px`, top: `${py - 18}px`, width: '36px', height: '36px', fontSize: '28px', pointerEvents: 'none' } }, '🧶');
+      arena.append(yarn); ctx.after(450, () => yarn.remove());
+      mice.forEach((m) => { if (Math.hypot(m.x - px, m.y - py) < 130) m.a = Math.atan2(m.y - py, m.x - px); });
+    }
+    ctx.on(arena, 'pointerdown', (e) => { const r = arena.getBoundingClientRect(); drop(e.clientX - r.left, e.clientY - r.top); });
+    const nearest = () => {
+      let best = null;
+      for (let i = 0; i < mice.length; i++) for (let j = i + 1; j < mice.length; j++) {
+        const d = Math.hypot(mice[i].x - mice[j].x, mice[i].y - mice[j].y);
+        if (!best || d < best.d) best = { d, a: mice[i], b: mice[j] };
+      }
+      return best;
+    };
+    ctx.frame((dt) => {
+      const W = arena.clientWidth, H = arena.clientHeight;
+      if (!W || !H) return;
+      const want = clamp(3 + (ctx.level >> 1), 3, clamp(Math.floor(W * H / 16900), 4, 8)); // на маленьком поле мышат меньше
+      while (mice.length < want) addMouse();
+      const speed = 40 + ctx.level * 3.5;
+      const maxCharges = Math.max(1, 1 + (ctx.level >> 2));
+      recharge += dt;
+      if (recharge > 1.3) { recharge = 0; if (charges < maxCharges) { charges++; shown = -1; } }
+      charges = Math.min(charges, maxCharges);
+      say();
+      for (const m of mice) {
+        m.x += Math.cos(m.a) * speed * dt; m.y += Math.sin(m.a) * speed * dt;
+        if (m.x < 2 || m.x > W - SIZE - 2) { m.a = Math.PI - m.a; m.x = clamp(m.x, 2, W - SIZE - 2); }
+        if (m.y < 2 || m.y > H - SIZE - 2) { m.a = -m.a; m.y = clamp(m.y, 2, H - SIZE - 2); }
+        m.hit = Math.max(0, m.hit - dt);
+        m.el.style.transform = `translate(${m.x}px,${m.y}px)`;
+      }
+      for (let i = 0; i < mice.length; i++) for (let j = i + 1; j < mice.length; j++) {
+        const a = mice[i], b = mice[j];
+        if (a.hit || b.hit || Math.hypot(a.x - b.x, a.y - b.y) > SIZE * 0.72) continue;
+        a.hit = b.hit = 1; safe = 0; ctx.bad();
+        const dir = Math.atan2(a.y - b.y, a.x - b.x); a.a = dir; b.a = dir + Math.PI;
+      }
+      safe += dt;
+      if (safe >= 3.5) { safe = 0; ctx.good(7); }
+    });
+    ctx.bot(() => { const n = nearest(); if (n && n.d < 90) drop((n.a.x + n.b.x) / 2 + SIZE / 2, (n.a.y + n.b.y) / 2 + SIZE / 2); });
+  },
 };
