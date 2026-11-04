@@ -134,7 +134,7 @@ export const games = {
         } else { el.classList.add('no'); phase = 'done'; ctx.bad(); ctx.after(800, round); }
       }
       seq.forEach((v, i) => {
-        ctx.after(420 + i * 560, () => { const c = g.cells[v]; c.replaceChildren(h('img', { src: 'img/tima.webp', alt: 'Тима' })); c.classList.add('on'); beep(420 + v * 30); ctx.after(400, () => { c.textContent = '🛏️'; c.classList.remove('on'); }); });
+        ctx.after(420 + i * 560, () => { const c = g.cells[v]; c.replaceChildren(h('img', { src: 'img/tima.webp', alt: 'Тим' })); c.classList.add('on'); beep(420 + v * 30); ctx.after(400, () => { c.textContent = '🛏️'; c.classList.remove('on'); }); });
       });
       ctx.after(520 + seq.length * 560, () => { phase = 'input'; ctx.say(reverse ? 'Теперь в обратном порядке!' : 'Твоя очередь!'); });
       ctx.bot(() => { if (phase === 'input') g.cells[need[pos]].click(); });
