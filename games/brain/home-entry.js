@@ -13,7 +13,7 @@
     var s = document.createElement('section');
     s.className = 'bx-entry'; s.id = 'brain';
     s.innerHTML = '<div class="bx-box"><div class="bx-cats"><img src="' + href + 'img/mia.webp" alt=""><img src="' + href + 'img/rocky.webp" alt=""><img src="' + href + 'img/tima.webp" alt=""></div>' +
-      '<div class="bx-text"><small>Новый раздел</small><strong>Тренировка ума с котиками</strong><p>53 игры на память, внимание, скорость, логику, слова и счёт, а ещё разминка на каждый день.</p></div>' +
+      '<div class="bx-text"><small>Новый раздел</small><strong>Тренировка ума с котиками</strong><p>54 игры на память, внимание, скорость, логику, слова и счёт, а ещё разминка на каждый день.</p></div>' +
       '<a class="bx-go" href="' + href + '">Открыть игры</a></div>';
     return s;
   }
