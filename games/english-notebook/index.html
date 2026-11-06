@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>АюлитА · English Notebook</title>
+<title>Тетрадь</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Neucha&family=Nunito:wght@500;700;800&display=swap">
 <style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <style id="app-style">
@@ -128,16 +128,21 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 @media (max-width:370px){.games{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.shake{animation:none}.bar i{transition:none}}
 </style>
-<link rel="stylesheet" href="aulita.css?v=20261106-2">
+<link rel="stylesheet" href="aulita.css?v=20261106-3">
 </head>
 <body>
-<div id="app"><main class="wrap"><h1>Английская тетрадка</h1><p>Загружаю задания… Если надпись не исчезает, обновите страницу.</p></main></div>
+<div id="app"><main class="wrap"><h1>Тетрадь</h1><p>Загружаю задания… Если надпись не исчезает, обновите страницу.</p></main></div>
+<script src="art.js?v=20261106-3"></script>
+<script src="speaking.js?v=20261106-3"></script>
+<script src="mini-games.js?v=20261106-3"></script>
 <script id="app-code">
 (function(){
 "use strict";
 let DATA={books:[],topics:[]};
 const API="https://api.github.com/repos/Aulita55/aulita-game-lab/contents/games/english-notebook/topics.json";
 const app=document.getElementById("app");
+let gameCleanup=null;
+function stopGameResources(){if(gameCleanup){const clean=gameCleanup;gameCleanup=null;clean()}}
 let run=0,editing=null,loaded=false,loadFailed=false,token=null,teacherReady=false,fileSha=null,loginError="";
 
 /* ---------- helpers ---------- */
@@ -153,6 +158,7 @@ const ALPHABET_ART='pics/alphabet-3d.webp';
 const ART_BY_WORD={"apple": 0, "яблоко": 0, "bear": 1, "медведь": 1, "cat": 2, "кошка": 2, "dog": 3, "собака": 3, "elephant": 4, "слон": 4, "flower": 5, "цветок": 5, "goat": 6, "коза": 6, "hippo": 7, "бегемот": 7, "insect": 8, "насекомое": 8, "jelly": 9, "желе": 9, "kangaroo": 10, "кенгуру": 10, "lion": 11, "лев": 11, "monkey": 12, "обезьяна": 12, "nest": 13, "гнездо": 13, "octopus": 14, "осьминог": 14, "penguin": 15, "пингвин": 15, "queen": 16, "королева": 16, "rabbit": 17, "кролик": 17, "snake": 18, "змея": 18, "tiger": 19, "тигр": 19, "umbrella": 20, "зонт": 20, "vulture": 21, "стервятник": 21, "whale": 22, "кит": 22, "fox": 23, "лиса": 23, "yo-yo": 24, "йо-йо": 24, "zebra": 25, "зебра": 25};
 const ART_BY_SYMBOL={"🍎": 0, "🐻": 1, "🐱": 2, "🐶": 3, "🐘": 4, "🌼": 5, "🐐": 6, "🦛": 7, "🐞": 8, "🍮": 9, "🦘": 10, "🦁": 11, "🐒": 12, "🪺": 13, "🐙": 14, "🐧": 15, "👑": 16, "🐰": 17, "🐍": 18, "🐯": 19, "☂️": 20, "🦅": 21, "🐳": 22, "🦊": 23, "🪀": 24, "🦓": 25};
 function picEl(em,alt){
+ const custom=window.NotebookArt&&NotebookArt.element(alt,em,el);if(custom)return custom;
  const index=ART_BY_WORD[String(alt||'').toLowerCase()]??ART_BY_SYMBOL[em];
  if(index!==undefined){
   const col=index%6,row=Math.floor(index/6);
@@ -184,8 +190,10 @@ const SYLLABLE_RULE={closed:"Закрытый слог: после гласно�
 const SCRAMBLE=/^[a-z]{3,9}$/i;
 const searchable=t=>t.words.filter(w=>SCRAMBLE.test(clean(w[0])));
 const gappable=t=>t.sentences.filter(x=>x[0].trim().split(/\s+/).length>=3);
-const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами"];
+const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры"];
 const GAMES=[
+ ...[ ["adventure","1→24","Ходилка с кубиком","Задания, бонусы и ловушки"], ["tictactoe","X / O","Крестики-нолики","Выполни задание и поставь фишку"], ["maze","Путь","Лабиринт","Найди животных и открой выход"] ].map(([key,mark,title,desc])=>({key,mark,title,desc,group:5,ok:t=>t.id==="fh2-g1-animals"&&!!window.NotebookMiniGames,run:(t,c)=>NotebookMiniGames.play(key,t,c,{el,speak,canSpeak,picEl,tone,shuffle})})),
+ {key:"speaking",group:0,mark:"Say",title:"Говорим",desc:"Выбери ответ, запиши и проверь фразу",ok:t=>!!window.NotebookSpeech&&NotebookSpeech.supportsTopic(t),run:(t,c)=>NotebookSpeech.play(t,c,{el,speak,canSpeak,picEl,tone},{onAttempt:r=>window.NotebookMiniGames&&NotebookMiniGames.recordEvidence(t.id,0,2,r.ok,r.assisted)})},
  {key:"cards",group:0,mark:"Aa",title:"Карточки",desc:"Смотри, слушай, запоминай",ok:t=>t.words.length+t.sentences.length>0,run:playCards},
  {key:"read",group:1,mark:"name",title:"Читаем слова",desc:"Прочитай и проверь себя",ok:t=>rd(t).length>0,run:playRead},
  {key:"syllable",group:1,mark:"cat / name",title:"Какой слог?",desc:"Открытый или закрытый",ok:t=>rd(t).length>=2,run:playSyllable},
@@ -209,7 +217,7 @@ function header(){
  const controls=[];
  controls.push(el('button',{class:'ghost',type:'button',textContent:'На весь экран',on:{click:async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else toast('Полноэкранный режим недоступен в этом браузере.')}catch(e){toast('Не удалось открыть полный экран.')}}}}));
  if(token)controls.push(el('button',{type:'button',textContent:location.hash==='#studio'?'Как видит ученик':'Кабинет учителя',on:{click:()=>{location.hash=location.hash==='#studio'?'':'studio'}}}));
- return el('header',{class:'top notebook-header'},el('a',{class:'brand',href:'#',ariaLabel:'АюлитА — English Notebook'},el('img',{src:'../../assets/aulita-wordmark.png',alt:'АюлитА',width:154,height:61}),el('span',null,'English Notebook')),el('div',{class:'row'},controls));
+ return el('header',{class:'top notebook-header'},el('a',{class:'brand',href:'#',ariaLabel:'АюлитА — Тетрадь'},el('img',{src:'../../assets/aulita-wordmark.png',alt:'АюлитА',width:154,height:61}),el('span',null,'Тетрадь')),el('div',{class:'row'},controls));
 }
 function alphabetBoard(t){
  const status=el('p',{class:'hint alphabet-status',ariaLive:'polite'},'Нажми на картинку — послушай слово.');
@@ -217,7 +225,7 @@ function alphabetBoard(t){
  const tiles=el('div',{class:'alphabet-tiles'},t.words.map((w,i)=>el('button',{class:'alphabet-tile',type:'button',ariaLabel:letters[i]+' — '+w[0],on:{click:e=>{tiles.querySelectorAll('.selected').forEach(n=>n.classList.remove('selected'));e.currentTarget.classList.add('selected');status.textContent=letters[i]+' '+letters[i].toLowerCase()+' · '+w[0];speak(w[0]);}}},el('span',{class:'letter'},letters[i]+letters[i].toLowerCase()),picEl(w[2],w[0]),el('span',{class:'word'},w[0]))));
  return el('section',{class:'alphabet-board stack'},el('div',{class:'board-heading row'},el('div',{class:'stack'},el('p',{class:'eyebrow'},'FLY HIGH 2 · ПЕРВЫЕ ШАГИ'),el('h2',null,'Alphabet A–Z')),el('button',{class:'main',type:'button',textContent:'Тренировать слова →',on:{click:()=>{location.hash=t.id}}})),status,tiles);
 }
-function welcome(){return el('section',{class:'welcome'},el('div',{class:'stack'},el('p',{class:'eyebrow'},'УЧИМСЯ С УДОВОЛЬСТВИЕМ'),el('h1',null,'Маленькие шаги. Большие открытия.'),el('p',{class:'muted'},'Слушай, запоминай и играй. Твой прогресс сохраняется автоматически.')),el('img',{class:'teacher-cat',src:'../../assets/oscar-3d-teacher.png',alt:'Оскар, кот-учитель АюлитА',width:154,height:180}));}
+function welcome(){return el('div',{class:'notebook-mascot'},el('img',{class:'teacher-cat',src:'../../assets/oscar-3d-teacher.png',alt:'Оскар, кот-учитель АюлитА',width:96,height:112}));}
 
 function viewHome(){
  let cur=store.get("ee-book");if(!bookById(cur))cur=bookById("b-fly-high-2-group-1")?"b-fly-high-2-group-1":DATA.books[0]?DATA.books[0].id:null;
@@ -227,7 +235,7 @@ function viewHome(){
  function paint(){const t=DATA.topics.find(t=>t.id==="fh2-g1-alphabet"&&t.bookId===cur);alphabet.replaceChildren(...(t?[alphabetBoard(t)]:[]));chips.replaceChildren(...DATA.books.map(b=>el("button",{class:"chip",type:"button",textContent:b.title,ariaPressed:String(b.id===cur),on:{click:()=>{cur=b.id;store.set("ee-book",cur);paint()}}})));
   list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map(t=>{const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;return el("button",{class:"topic",type:"button",on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,t.title)),el("span",{class:"muted small"},got+" из "+total+" игр"))}))}
  paint();
- return [header(),welcome(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Твоя тетрадка"),chips,alphabet,el("h2",null,"Темы и игры"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}})),el("p",{class:"hint"},"Alphabet — объёмные иллюстрации. Другие темы: Twemoji, CC BY 4.0.")]
+ return [header(),welcome(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Твоя тетрадка"),chips,alphabet,el("h2",null,"Темы и игры"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}})),el("p",{class:"hint"},"")]
 }
 function viewTopic(t){
  const book=bookById(t.bookId);
@@ -235,7 +243,7 @@ function viewTopic(t){
  return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=""}}})),
   el("section",{class:"stack"},el("p",{class:"muted small"},book?book.title:""),el("h1",null,t.title),el("p",null,"Выбери игру. Начинать лучше с карточек.")),
   ...GROUPS.map((name,gi)=>{const list=games.filter(g=>g.group===gi);return list.length?el("section",{class:"stack"},el("h3",null,name),el("div",{class:"games"},list.map(g=>el("button",{class:"game",type:"button",on:{click:()=>startGame(t,g)}},el("span",{class:"mark"},g.mark),el("strong",null,g.title),el("small",null,g.desc),el("span",{class:"stars"},starsText(bestOf(t.id,g.key))))))):null}),
-  reportBox(t)]
+  window.NotebookMiniGames?NotebookMiniGames.summary(t.id,el):null,reportBox(t)]
 }
 function reportBox(t){
  const nameI=el("input",{id:"kid-name",value:store.get("ee-name")||"",placeholder:"Например, Маша",autocomplete:"off",on:{input:e=>store.set("ee-name",e.target.value)}});
@@ -246,12 +254,13 @@ function reportBox(t){
 
 /* ---------- game frame ---------- */
 function startGame(t,g){
+ stopGameResources();
  const my=++run;
  const art=new Image();art.src=ALPHABET_ART;
  const stage=el("div",{class:"stack"});
  const bar=el("i",{style:"width:0%"});
  app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),canSpeak()?el("div",null,el("button",{class:"say",type:"button",textContent:"Послушать задание",on:{click:()=>speakRu(g.title+". "+g.desc)}})):null,stage));
- const ctx={stage,alive:()=>my===run,progress:(d,n)=>{bar.style.width=Math.round(100*d/n)+"%"},finish:(stars,line)=>{if(my!==run)return;bar.style.width="100%";showResult(t,g,stars,line,stage)}};
+ const ctx={stage,onCleanup:fn=>{gameCleanup=fn},alive:()=>my===run,progress:(d,n)=>{bar.style.width=Math.round(100*d/n)+"%"},finish:(stars,line)=>{if(my!==run)return;bar.style.width="100%";showResult(t,g,stars,line,stage)}};
  g.run(t,ctx);
 }
 function starsBy(mistakes,total){const r=mistakes/Math.max(total,1);return r===0?3:r<=.34?2:1}
@@ -292,7 +301,7 @@ function playPairs(t,c,source,size){
   if(ok){tone(true);left.b.classList.remove("on");left.b.classList.add("done");b.classList.add("done");left=null;matched++;c.progress(matched,pick.length);if(matched===pick.length)setTimeout(()=>c.finish(starsBy(mistakes,pick.length),"Ошибок: "+mistakes),450)}
   else{tone(false);mistakes++;shake(b);shake(left.b)}
  }
- c.stage.replaceChildren(el("p",null,"Нажми слева на слово, а справа на его картинку."),el("div",{class:"pairs"},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru",w[2])))));
+ c.stage.replaceChildren(el("p",null,"Нажми слева на слово, а справа на его картинку."),el("div",{class:"pairs",style:"--pair-rows:"+pick.length},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru",w[2])))));
 }
 function playBalloons(t,c){
  const rounds=shuffle(t.words).slice(0,10);let i=0,lives=3,right=0;
@@ -351,7 +360,7 @@ function playGaps(t,c){
   const q=el("p",{class:"gapq"},parts[0],gap,parts.slice(1).join("___"));
   let over=false;
   const opts=shuffle([g[1],...g[2]]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===g[1]){over=true;tone(true);gap.textContent=o;b.classList.add("ok");speak(g[0].replace("___",o));i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
-  c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},g[3]?picEl(g[3],""):null,q,g[3]?sayBtn(g[0].replace("___",g[1])):null),el("div",{class:"opts"},opts));
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},g[3]?picEl(g[3],g[0]):null,q,g[3]?sayBtn(g[0].replace("___",g[1])):null),el("div",{class:"opts"},opts));
  }
  next();
 }
@@ -710,6 +719,7 @@ function editor(){
 }
 /* ---------- router ---------- */
 function render(){
+ stopGameResources();
  const h=location.hash.replace(/^#/,"");run++;
  let view;
  if(h==="studio")view=teacherReady?viewStudio():viewLogin();
@@ -723,6 +733,7 @@ async function loadTopics(){
  catch(e){if(!teacherReady)loadFailed=true}
  render();
 }
+window.addEventListener("pagehide",stopGameResources);
 window.addEventListener("hashchange",async()=>{window.scrollTo(0,0);if(location.hash==="#studio"&&token&&!teacherReady)await openStudio(token);render()});
 (async function(){
  token=store.get("ee-token");
