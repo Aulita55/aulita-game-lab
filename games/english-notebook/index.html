@@ -210,7 +210,7 @@ function courseView(t){
  const ok=gameUnlocked(t,g),done=bestOf(t.id,g.key)>=2;
  return el("button",{class:"topic",type:"button",disabled:!ok,on:{click:()=>startGame(t,g)}},
  el("span",null,el("b",null,(i+1)+". "+g.title),el("span",{class:"muted small",style:"display:block"},g.desc)),
- el("span",{class:"stars",textContent:done?"✓":ok?"▶":"🔒"});
+ el("span",{class:"stars",textContent:done?"✓":ok?"▶":"🔒"}));
  })),reportBox(t)]
 }
 function viewHome(){
@@ -450,7 +450,7 @@ function playSpeak(t,c){
     rec.onerror=e=>{if(c.alive())status.textContent=e.error==="not-allowed"?"Разреши доступ к микрофону или пропусти слово.":"Не удалось распознать. Повтори ещё раз."};
     rec.onend=()=>{if(recognition===rec)recognition=null;if(c.alive())b.disabled=false};
     try{rec.start()}catch(e){recognition=null;b.disabled=false;status.textContent="Микрофон недоступен."}
-   }});actions.append(b);
+   }}});actions.append(b);
   }
   actions.append(el("button",{type:"button",textContent:"Повторил(а) — дальше",on:{click:()=>{i++;c.progress(i,words.length);next()}}}));
   c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+words.length),
