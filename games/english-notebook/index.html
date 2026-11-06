@@ -101,6 +101,11 @@ textarea{min-height:128px;resize:vertical}
 .thumb.on{border-color:var(--pen);border-width:3px;padding:3px;background:var(--sun);color:var(--on-pop)}
 .sub{border-top:2px dashed var(--grid);padding-top:14px}
 summary{font-weight:800;cursor:pointer;color:var(--ink)}
+.pic{display:inline-block;width:72px;height:72px;vertical-align:middle;object-fit:contain;-webkit-user-drag:none;user-select:none}
+.pic-text{font-size:58px;line-height:1.1}
+.prompt .pic,.big .pic{width:clamp(96px,30vw,132px);height:clamp(96px,30vw,132px)}
+.pair .pic{width:44px;height:44px}.mem .pic{width:54px;height:54px}.balloon .pic{width:56px;height:56px}
+.clue .pic{width:32px;height:32px}.opt .pic{width:60px;height:60px}.tf-tr .pic{width:96px;height:96px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;max-width:calc(100% - 32px);z-index:20;text-align:center}
 .memory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 .mem{min-height:88px;padding:6px 4px;overflow-wrap:anywhere;font-size:15px}
@@ -142,6 +147,9 @@ function toast(msg){document.querySelectorAll(".toast").forEach(t=>t.remove());c
 function canSpeak(){return "speechSynthesis" in window&&typeof SpeechSynthesisUtterance!=="undefined"}
 function speak(t){if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.88;speechSynthesis.speak(u)}catch(e){}}
 function sayBtn(t){if(!canSpeak())return null;const b=el("button",{class:"say",type:"button",ariaLabel:"Послушать",on:{click:e=>{e.stopPropagation();speak(t)}}});b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';b.append("Послушать");return b}
+function speakRu(t){if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="ru-RU";u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
+function picEl(em,alt){const cp=[...em].map(c=>c.codePointAt(0).toString(16));const code=(em.includes("\u200d")?cp:cp.filter(x=>x!=="fe0f")).join("-");const im=el("img",{class:"pic",alt:alt||"",src:"pics/"+code+".svg",draggable:false});im.onerror=()=>im.replaceWith(el("span",{class:"pic-text",role:"img",ariaLabel:alt||"",textContent:em}));return im}
+const show=(text,em)=>em?picEl(em,text):text;
 let audio=null;
 function tone(ok){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.type=ok?"triangle":"square";o.frequency.value=ok?740:170;g.gain.setValueAtTime(ok?.09:.04,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.2);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.2)}catch(e){}}
 function shake(n){n.classList.remove("shake");void n.offsetWidth;n.classList.add("shake")}
@@ -168,10 +176,10 @@ const GAMES=[
  {key:"read",group:1,mark:"name",title:"Читаем слова",desc:"Прочитай и проверь себя",ok:t=>rd(t).length>0,run:playRead},
  {key:"syllable",group:1,mark:"cat / name",title:"Какой слог?",desc:"Открытый или закрытый",ok:t=>rd(t).length>=2,run:playSyllable},
  {key:"minimal",group:1,mark:"cap / cape",title:"Услышь разницу",desc:"Какое слово прозвучало",ok:t=>minimalPairs(t).length>=2&&canSpeak(),run:playMinimal},
- {key:"pairs",group:2,mark:"a = я",title:"Пары",desc:"Соедини слово и перевод",ok:t=>t.words.length>=3,run:(t,c)=>playPairs(t,c,t.words,6)},
+ {key:"pairs",group:2,mark:"cat = ?",title:"Пары",desc:"Соедини слово и картинку",ok:t=>t.words.length>=3,run:(t,c)=>playPairs(t,c,t.words,6)},
  {key:"memory",group:2,mark:"? ?",title:"Память",desc:"Открывай и ищи пары",ok:t=>t.words.length>=3,run:playMemory},
- {key:"phrasepairs",group:2,mark:"I am = я",title:"Фразы и перевод",desc:"Соедини фразу с переводом",ok:t=>t.sentences.length>=3,run:(t,c)=>playPairs(t,c,t.sentences,4)},
- {key:"balloons",group:3,mark:"pop!",title:"Шарики",desc:"Лопни шарик с переводом",ok:t=>t.words.length>=3,run:playBalloons},
+ {key:"phrasepairs",group:2,mark:"A is for…",title:"Фразы и картинки",desc:"Соедини фразу с картинкой",ok:t=>t.sentences.length>=3,run:(t,c)=>playPairs(t,c,t.sentences,4)},
+ {key:"balloons",group:3,mark:"pop!",title:"Шарики",desc:"Лопни шарик с нужной картинкой",ok:t=>t.words.length>=3,run:playBalloons},
  {key:"race",group:3,mark:"go!",title:"Гонка",desc:"Обгони робота ответами",ok:t=>t.words.length>=3,run:playRace},
  {key:"truefalse",group:3,mark:"да / нет",title:"Верно или нет",desc:"Успей за 45 секунд",ok:t=>t.words.length>=3,run:playTrueFalse},
  {key:"listen",group:3,mark:"((•))",title:"На слух",desc:"Услышь и найди слово",ok:t=>t.words.length>=4&&canSpeak(),run:playListen},
@@ -191,7 +199,7 @@ function viewHome(){
  function paint(){chips.replaceChildren(...DATA.books.map(b=>el("button",{class:"chip",type:"button",textContent:b.title,ariaPressed:String(b.id===cur),on:{click:()=>{cur=b.id;store.set("ee-book",cur);paint()}}})));
   list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map(t=>{const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;return el("button",{class:"topic",type:"button",on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,t.title)),el("span",{class:"muted small"},got+" из "+total+" игр"))}))}
  paint();
- return [header(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Выбери учебник"),chips,el("h2",null,"Выбери тему"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}}))]
+ return [header(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Выбери учебник"),chips,el("h2",null,"Выбери тему"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}})),el("p",{class:"hint"},"Картинки: Twemoji, CC BY 4.0")]
 }
 function viewTopic(t){
  const book=bookById(t.bookId);
@@ -211,9 +219,10 @@ function reportBox(t){
 /* ---------- game frame ---------- */
 function startGame(t,g){
  const my=++run;
+ for(const em of new Set([...t.words,...t.sentences].map(x=>x[2]).concat(t.gaps.map(x=>x[3]),rd(t).map(x=>x[3])).filter(Boolean)))picEl(em,"");
  const stage=el("div",{class:"stack"});
  const bar=el("i",{style:"width:0%"});
- app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),stage));
+ app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),canSpeak()?el("div",null,el("button",{class:"say",type:"button",textContent:"Послушать задание",on:{click:()=>speakRu(g.title+". "+g.desc)}})):null,stage));
  const ctx={stage,alive:()=>my===run,progress:(d,n)=>{bar.style.width=Math.round(100*d/n)+"%"},finish:(stars,line)=>{if(my!==run)return;bar.style.width="100%";showResult(t,g,stars,line,stage)}};
  g.run(t,ctx);
 }
@@ -235,18 +244,18 @@ function playCards(t,c){
   if(!queue.length){c.finish(3,"Всё пройдено. Теперь попробуй другие игры.");return}
   const w=queue[0];let open=false;
   const face=el("span",{class:"big",textContent:w[0]});
-  const sub=el("span",{class:"muted small",textContent:"Нажми, чтобы увидеть перевод"});
+  const sub=el("span",{class:"muted small",textContent:"Нажми, чтобы увидеть картинку"});
   const actions=el("div",{class:"row",style:"justify-content:center",hidden:true},
-   el("button",{type:"button",textContent:"Повторю ещё",on:{click:()=>{repeats++;queue.push(queue.shift());next()}}}),
-   el("button",{class:"main",type:"button",textContent:"Запомнил(а)",on:{click:()=>{queue.shift();done++;c.progress(done,total);next()}}}));
-  const card=el("button",{class:"flip",type:"button",on:{click:()=>{open=!open;face.textContent=open?w[1]:w[0];sub.textContent=open?"Нажми, чтобы вернуться к английскому":"Нажми, чтобы увидеть перевод";actions.hidden=false;if(open)speak(w[0])}}},face,sub);
+   el("button",{type:"button",textContent:"↻ Повторю ещё",on:{click:()=>{repeats++;queue.push(queue.shift());next()}}}),
+   el("button",{class:"main",type:"button",textContent:"✓ Запомнил(а)",on:{click:()=>{queue.shift();done++;c.progress(done,total);next()}}}));
+  const card=el("button",{class:"flip",type:"button",on:{click:()=>{open=!open;face.replaceChildren(open?show(w[1],w[2]):w[0]);sub.textContent=open?"Нажми, чтобы вернуться к слову":"Нажми, чтобы увидеть картинку";actions.hidden=false;if(open)speak(w[0])}}},face,sub);
   c.stage.replaceChildren(card,el("div",{class:"row",style:"justify-content:center"},sayBtn(w[0])),actions,el("p",{class:"muted small",style:"text-align:center"},"Осталось карточек: "+queue.length));
  }
  next();
 }
 function playPairs(t,c,source,size){
  const pick=shuffle(source).slice(0,size);let left=null,mistakes=0,matched=0;
- const mk=(text,side)=>{const b=el("button",{class:"pair",type:"button",textContent:text,on:{click:()=>tap(b,text,side)}});return b};
+ const mk=(text,side,em)=>{const b=el("button",{class:"pair",type:"button",on:{click:()=>tap(b,text,side)}},show(text,em));return b};
  function tap(b,text,side){
   if(b.classList.contains("done"))return;
   if(side==="en"){if(left)left.b.classList.remove("on");left={b,text};b.classList.add("on");speak(text);return}
@@ -255,7 +264,7 @@ function playPairs(t,c,source,size){
   if(ok){tone(true);left.b.classList.remove("on");left.b.classList.add("done");b.classList.add("done");left=null;matched++;c.progress(matched,pick.length);if(matched===pick.length)setTimeout(()=>c.finish(starsBy(mistakes,pick.length),"Ошибок: "+mistakes),450)}
   else{tone(false);mistakes++;shake(b);shake(left.b)}
  }
- c.stage.replaceChildren(el("p",null,"Нажми английский текст слева, потом перевод справа."),el("div",{class:"pairs"},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru")))));
+ c.stage.replaceChildren(el("p",null,"Нажми слева на слово, а справа на его картинку."),el("div",{class:"pairs"},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru",w[2])))));
 }
 function playBalloons(t,c){
  const rounds=shuffle(t.words).slice(0,10);let i=0,lives=3,right=0;
@@ -265,15 +274,17 @@ function playBalloons(t,c){
   if(!c.alive())return;
   if(i>=rounds.length||lives<=0){end();return}
   const w=rounds[i];let over=false;
-  const wrongs=shuffle(t.words.filter(x=>x[1]!==w[1])).slice(0,2).map(x=>x[1]);
+  const wrongs=shuffle(t.words.filter(x=>x[1]!==w[1])).slice(0,2);
   const sky=el("div",{class:"sky"});
   const hearts=el("span",{class:"lives",ariaLabel:"Жизни: "+lives,textContent:"♥".repeat(lives)});
   c.stage.replaceChildren(el("div",{class:"prompt"},el("span",{class:"big"},w[0]),sayBtn(w[0])),el("div",{class:"top"},hearts,el("span",{class:"muted small"},"Шарик "+(i+1)+" из "+rounds.length)),sky);
   speak(w[0]);
   const anims=[];
   const close=(gain)=>{if(over)return;over=true;anims.forEach(a=>{try{a.cancel()}catch(e){}});if(gain)right++;else lives--;i++;c.progress(i,rounds.length);setTimeout(next,gain?350:700)};
-  shuffle([w[1],...wrongs]).forEach((text,n)=>{
+  shuffle([w,...wrongs]).forEach((opt,n)=>{
+   const text=opt[1];
    const b=el("button",{class:"balloon",type:"button",textContent:text,on:{click:()=>{if(over)return;if(text===w[1]){tone(true);b.style.visibility="hidden";close(true)}else{tone(false);b.classList.add("miss");b.disabled=true;lives--;hearts.textContent="♥".repeat(Math.max(lives,0));if(lives<=0){over=true;anims.forEach(a=>{try{a.cancel()}catch(e){}});setTimeout(end,500)}}}}});
+   if(opt[2])b.replaceChildren(picEl(opt[2],text));
    b.style.left="calc("+(n*33.33)+"% + 4px)";sky.append(b);
    const H=sky.clientHeight,h=b.offsetHeight+34;
    if(still||!b.animate){b.style.top=Math.max(12,(H-h)/2)+"px";return}
@@ -300,8 +311,8 @@ function assemble(c,rounds,build,hint){
  }
  next();
 }
-function playLetters(t,c){assemble(c,shuffle(spellable(t)).slice(0,8),w=>{const word=clean(w[0]).toLowerCase();return{tokens:[...word],ask:w[1],say:word,audio:true,lower:true}},"Собери слово")}
-function playSentences(t,c){assemble(c,shuffle(sentenceable(t)).slice(0,8),s=>({tokens:s[0].trim().split(/\s+/),ask:s[1],say:s[0],audio:false}),"Собери предложение")}
+function playLetters(t,c){assemble(c,shuffle(spellable(t)).slice(0,8),w=>{const word=clean(w[0]).toLowerCase();return{tokens:[...word],ask:show(w[1],w[2]),say:word,audio:true,lower:true}},"Собери слово")}
+function playSentences(t,c){assemble(c,shuffle(sentenceable(t)).slice(0,8),s=>({tokens:s[0].trim().split(/\s+/),ask:show(s[1],s[2]),say:s[0],audio:true}),"Собери предложение")}
 function playGaps(t,c){
  const rounds=shuffle(t.gaps).slice(0,10);let i=0,mistakes=0;
  function next(){
@@ -312,7 +323,7 @@ function playGaps(t,c){
   const q=el("p",{class:"gapq"},parts[0],gap,parts.slice(1).join("___"));
   let over=false;
   const opts=shuffle([g[1],...g[2]]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===g[1]){over=true;tone(true);gap.textContent=o;b.classList.add("ok");speak(g[0].replace("___",o));i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
-  c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},q),el("div",{class:"opts"},opts));
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},g[3]?picEl(g[3],""):null,q,g[3]?sayBtn(g[0].replace("___",g[1])):null),el("div",{class:"opts"},opts));
  }
  next();
 }
@@ -323,7 +334,7 @@ function playRead(t,c){
   if(!c.alive())return;
   if(i>=rounds.length){c.finish(again<=1?3:again<=4?2:1,"Прочитано слов: "+rounds.length+", на повтор: "+again);return}
   const w=rounds[i];
-  const answer=el("div",{class:"stack",hidden:true,style:"align-items:center;text-align:center"},el("span",{class:"tf-tr"},w[1]),el("span",{class:"muted small"},w[2]==="open"?"Открытый слог":"Закрытый слог"),el("div",{class:"row",style:"justify-content:center"},el("button",{type:"button",textContent:"Ещё потренируюсь",on:{click:()=>{again++;rounds.push(rounds.splice(i,1)[0]);next()}}}),el("button",{class:"main",type:"button",textContent:"Прочитал(а) верно",on:{click:()=>{tone(true);i++;c.progress(i,rounds.length);next()}}})));
+  const answer=el("div",{class:"stack",hidden:true,style:"align-items:center;text-align:center"},el("span",{class:"tf-tr"},show(w[1],w[3])),el("span",{class:"muted small"},w[2]==="open"?"Открытый слог":"Закрытый слог"),el("div",{class:"row",style:"justify-content:center"},el("button",{type:"button",textContent:"↻ Ещё потренируюсь",on:{click:()=>{again++;rounds.push(rounds.splice(i,1)[0]);next()}}}),el("button",{class:"main",type:"button",textContent:"✓ Прочитал(а) верно",on:{click:()=>{tone(true);i++;c.progress(i,rounds.length);next()}}})));
   const check=el("button",{class:"main",type:"button",textContent:canSpeak()?"Послушать и проверить":"Проверить",on:{click:()=>{speak(w[0]);answer.hidden=false;check.textContent="Послушать ещё раз"}}});
   c.stage.replaceChildren(el("p",null,"Прочитай слово вслух, потом проверь себя."),el("div",{class:"prompt"},el("span",{class:"big"},w[0]),check,answer),el("p",{class:"muted small",style:"text-align:center"},"Слово "+(i+1)+" из "+rounds.length));
  }
@@ -336,7 +347,7 @@ function playSyllable(t,c){
   if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
   const w=rounds[i];let over=false;const rule=el("p",{class:"small",style:"text-align:center;min-height:3em"});
   const opt=(type,label)=>{const b=el("button",{class:"opt",type:"button",textContent:label,on:{click:()=>{if(over)return;over=true;speak(w[0]);rule.textContent=SYLLABLE_RULE[w[2]];if(type===w[2]){tone(true);b.classList.add("ok")}else{tone(false);mistakes++;b.classList.add("no");shake(b)}i++;c.progress(i,rounds.length);setTimeout(next,type===w[2]?1800:3200)}}});return b};
-  c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("span",{class:"big"},w[0]),el("span",{class:"muted"},w[1])),el("div",{class:"opts"},opt("open","Открытый"),opt("closed","Закрытый")),rule);
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},w[3]?picEl(w[3],w[1]):el("span",{class:"muted"},w[1]),el("span",{class:"big"},w[0])),el("div",{class:"opts"},opt("open","Открытый"),opt("closed","Закрытый")),rule);
  }
  next();
 }
@@ -347,7 +358,7 @@ function playMinimal(t,c){
   if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
   const pair=rounds[i],said=pair[Math.random()<.5?0:1];let over=false;
   const note=el("span",{class:"muted"},"Какое слово ты слышишь?");
-  const opts=shuffle(pair).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o===said){over=true;tone(true);b.classList.add("ok");note.textContent=said[0]+": "+said[1];i++;c.progress(i,rounds.length);setTimeout(next,1500)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  const opts=shuffle(pair).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o===said){over=true;tone(true);b.classList.add("ok");note.replaceChildren(said[0]+" ",show(said[1],said[3]));i++;c.progress(i,rounds.length);setTimeout(next,1500)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
   c.stage.replaceChildren(el("p",{class:"muted small"},"Пара "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("button",{class:"main",type:"button",textContent:"Послушать слово",on:{click:()=>speak(said[0])}}),note),el("div",{class:"opts"},opts));
   speak(said[0]);
  }
@@ -355,25 +366,25 @@ function playMinimal(t,c){
 }
 function playMemory(t,c){
  const pick=shuffle(t.words).slice(0,6);let open=[],busy=false,misses=0,found=0;
- const tiles=shuffle(pick.flatMap((w,i)=>[{i,text:w[1]},{i,text:w[0],en:true}]));
+ const tiles=shuffle(pick.flatMap((w,i)=>[{i,text:w[1],em:w[2]},{i,text:w[0],en:true}]));
  const grid=el("div",{class:"memory"},tiles.map(x=>{const b=el("button",{class:"mem",type:"button",ariaLabel:"Закрытая карточка",textContent:"?",on:{click:()=>{
    if(busy||b.classList.contains("up"))return;
-   b.classList.add("up");b.textContent=x.text;b.ariaLabel=x.text;if(x.en)speak(x.text);open.push({b,x});
+   b.classList.add("up");b.replaceChildren(show(x.text,x.em));b.ariaLabel=x.text;if(x.en)speak(x.text);open.push({b,x});
    if(open.length<2)return;
    const [p,q]=open;open=[];
    if(p.x.i===q.x.i){tone(true);p.b.classList.add("done");q.b.classList.add("done");found++;c.progress(found,pick.length);if(found===pick.length)setTimeout(()=>c.finish(misses<=pick.length?3:misses<=pick.length*2?2:1,"Промахов: "+misses),600)}
    else{misses++;busy=true;setTimeout(()=>{if(!c.alive())return;[p,q].forEach(o=>{o.b.classList.remove("up");o.b.textContent="?";o.b.ariaLabel="Закрытая карточка"});busy=false},1100)}
  }}});return b}));
- c.stage.replaceChildren(el("p",null,"Открывай по две карточки. Ищи слово и его перевод."),grid);
+ c.stage.replaceChildren(el("p",null,"Открывай по две карточки. Ищи слово и его картинку."),grid);
 }
 function playTrueFalse(t,c){
  const LIMIT=45;let left=LIMIT,right=0,wrong=0,deck=[];
  const clock=el("span",{class:"lives"});const q=el("span",{class:"big"});const tr=el("span",{class:"tf-tr"});let isTrue=false;
- function next(){if(!deck.length)deck=shuffle(t.words);const w=deck.pop();isTrue=Math.random()<.5;let shown=w[1];if(!isTrue){const o=shuffle(t.words.filter(x=>x[1]!==w[1]))[0];if(o)shown=o[1];else isTrue=true}q.textContent=w[0];tr.textContent=shown}
+ function next(){if(!deck.length)deck=shuffle(t.words);const w=deck.pop();isTrue=Math.random()<.5;let shown=w;if(!isTrue){const o=shuffle(t.words.filter(x=>x[1]!==w[1]))[0];if(o)shown=o;else isTrue=true}q.textContent=w[0];speak(w[0]);tr.replaceChildren(show(shown[1],shown[2]))}
  function answer(v,b){if(v===isTrue){right++;tone(true)}else{wrong++;tone(false);shake(b)}score.textContent="Верно: "+right;next()}
  const score=el("span",{class:"muted small",textContent:"Верно: 0"});
- const yes=el("button",{class:"main",type:"button",textContent:"Верно",on:{click:()=>answer(true,yes)}});
- const no=el("button",{type:"button",textContent:"Неверно",on:{click:()=>answer(false,no)}});
+ const yes=el("button",{class:"main",type:"button",textContent:"✓ Верно",on:{click:()=>answer(true,yes)}});
+ const no=el("button",{type:"button",textContent:"✗ Неверно",on:{click:()=>answer(false,no)}});
  clock.textContent=left+" с";next();
  c.stage.replaceChildren(el("div",{class:"top"},clock,score),el("div",{class:"prompt"},q,tr),el("div",{class:"opts"},yes,no));
  const timer=setInterval(()=>{if(!c.alive()){clearInterval(timer);return}left--;clock.textContent=left+" с";c.progress(LIMIT-left,LIMIT);if(left<=0){clearInterval(timer);const all=right+wrong,acc=all?right/all:0;c.finish(acc>=.9&&right>=8?3:acc>=.7&&right>=4?2:1,"Верно: "+right+", ошибок: "+wrong)}},1000);
@@ -384,7 +395,7 @@ function playListen(t,c){
   if(!c.alive())return;
   if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
   const w=rounds[i];let over=false;const note=el("span",{class:"muted"},"Нажми и послушай");
-  const opts=shuffle([w,...shuffle(t.words.filter(x=>x[0]!==w[0])).slice(0,3)]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o[0]===w[0]){over=true;tone(true);b.classList.add("ok");note.textContent=w[1];i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  const opts=shuffle([w,...shuffle(t.words.filter(x=>x[0]!==w[0])).slice(0,3)]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o[0]===w[0]){over=true;tone(true);b.classList.add("ok");note.replaceChildren(show(w[1],w[2]));i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
   c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("button",{class:"main",type:"button",textContent:"Послушать слово",on:{click:()=>speak(w[0])}}),note),el("div",{class:"opts"},opts));
   speak(w[0]);
  }
@@ -398,7 +409,7 @@ function buildSearch(words){
  return{size,grid,placed};
 }
 function playSearch(t,c){
- const items=shuffle(searchable(t)).slice(0,6).map(w=>({word:clean(w[0]).toLowerCase(),ru:w[1]}));
+ const items=shuffle(searchable(t)).slice(0,6).map(w=>({word:clean(w[0]).toLowerCase(),ru:w[1],em:w[2]}));
  const uniq=items.filter((x,i)=>items.findIndex(y=>y.word===x.word)===i);
  const {size,grid,placed}=buildSearch(uniq.map(x=>x.word));
  const list=uniq.filter(x=>placed.includes(x.word));let start=null,misses=0,found=0;const clues={};
@@ -414,11 +425,11 @@ function playSearch(t,c){
   const len=Math.max(Math.abs(r-s.r),Math.abs(k-s.k))+1,dr=Math.sign(r-s.r),dk=Math.sign(k-s.k);let w="";const path=[];
   for(let m=0;m<len;m++){w+=grid[s.r+dr*m][s.k+dk*m];path.push(at(s.r+dr*m,s.k+dk*m))}
   const hit=list.find(x=>x.word===w&&!clues[x.word].classList.contains("got"));
-  if(hit){tone(true);speak(hit.word);path.forEach(x=>x.classList.add("done"));clues[hit.word].classList.add("got");clues[hit.word].textContent=hit.ru+" — "+hit.word;found++;c.progress(found,list.length);if(found===list.length)setTimeout(()=>c.finish(starsBy(misses,list.length),"Промахов: "+misses),700)}
+  if(hit){tone(true);speak(hit.word);path.forEach(x=>x.classList.add("done"));clues[hit.word].classList.add("got");clues[hit.word].replaceChildren(show(hit.ru,hit.em)," "+hit.word);found++;c.progress(found,list.length);if(found===list.length)setTimeout(()=>c.finish(starsBy(misses,list.length),"Промахов: "+misses),700)}
   else{tone(false);misses++;shake(b)}
  }
- const cl=el("div",{class:"chips"},list.map(x=>{const n=el("span",{class:"clue",textContent:x.ru});clues[x.word]=n;return n}));
- c.stage.replaceChildren(el("p",null,"Найди эти слова по-английски. Нажми первую и последнюю букву слова."),cl,board);
+ const cl=el("div",{class:"chips"},list.map(x=>{const n=el("span",{class:"clue"},show(x.ru,x.em));clues[x.word]=n;return n}));
+ c.stage.replaceChildren(el("p",null,"Найди в сетке английские слова к этим картинкам. Нажми первую и последнюю букву слова."),cl,board);
 }
 function playRace(t,c){
  const GOAL=8,STEP=4200;let you=0,bot=0,over=false,right=0,wrong=0,dir=0;
@@ -430,9 +441,9 @@ function playRace(t,c){
  function next(){
   if(over||!c.alive())return;
   if(!deck.length)deck=shuffle(t.words);
-  const w=deck.pop();dir=1-dir;const qi=dir?0:1,ai=1-qi;q.textContent=w[qi];if(qi===0)speak(w[0]);
-  const wrongs=shuffle(t.words.filter(x=>x[ai]!==w[ai])).slice(0,2).map(x=>x[ai]);
-  opts.replaceChildren(...shuffle([w[ai],...wrongs]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===w[ai]){tone(true);right++;you++;place(youCar,you);c.progress(you,GOAL);if(you>=GOAL){end();return}}else{tone(false);wrong++;shake(b)}next()}}});return b}));
+  const w=deck.pop();dir=1-dir;const qi=dir?0:1,ai=1-qi;q.replaceChildren(qi===0?w[0]:show(w[1],w[2]));if(qi===0)speak(w[0]);
+  const wrongs=shuffle(t.words.filter(x=>x[ai]!==w[ai])).slice(0,2);
+  opts.replaceChildren(...shuffle([w,...wrongs]).map(item=>{const o=item[ai];const b=el("button",{class:"opt",type:"button",on:{click:()=>{if(over)return;if(o===w[ai]){tone(true);right++;you++;place(youCar,you);c.progress(you,GOAL);if(you>=GOAL){end();return}}else{tone(false);wrong++;shake(b)}next()}}},ai===1?show(o,item[2]):o);return b}));
  }
  c.stage.replaceChildren(el("p",{class:"muted small"},"Каждый верный ответ двигает тебя вперёд. Робот едет сам."),track,el("div",{class:"prompt"},q),opts);
  place(youCar,0);place(botCar,0);
@@ -455,18 +466,19 @@ function playMissing(t,c){
   const q=el("p",{class:"gapq"},toks.slice(0,idx).join(" ")+(idx?" ":"")+(pre||""),gap,(post||"")+(idx<toks.length-1?" ":"")+toks.slice(idx+1).join(" "));
   let over=false;
   const opts=shuffle([core,...fake]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===core){over=true;tone(true);gap.textContent=core;b.classList.add("ok");speak(s[0]);i++;c.progress(i,rounds.length);setTimeout(next,1400)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
-  c.stage.replaceChildren(el("p",{class:"muted small"},"Фраза "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},q,el("span",{class:"muted"},s[1])),el("div",{class:"opts"},opts));
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Фраза "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},s[2]?picEl(s[2],s[1]):el("span",{class:"muted"},s[1]),q),el("div",{class:"opts"},opts));
  }
  next();
 }
 
 /* ---------- teacher ---------- */
-function parsePairs(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const m=l.match(/^(.+?)(?:\s+[-–—=]\s+|\t+)(.+)$/);if(m)ok.push([m[1].trim(),m[2].trim()]);else bad.push(n+1)});return{ok,bad}}
-function parseGaps(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split("|").map(x=>x.trim());const q=(p[0]||"").replace(/_{2,}/g,"___");const wrong=(p[2]||"").split(",").map(x=>x.trim()).filter(Boolean);if(q.includes("___")&&p[1]&&wrong.length)ok.push([q,p[1],wrong]);else bad.push(n+1)});return{ok,bad}}
-function parseReading(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split(/\s+[-–—=]\s+|\t+/).map(x=>x.trim());const ty=(p[2]||"").toLowerCase();const type=ty.startsWith("откр")||ty==="open"?"open":ty.startsWith("закр")||ty==="closed"?"closed":"";if(p.length===3&&p[0]&&p[1]&&type)ok.push([p[0],p[1],type]);else bad.push(n+1)});return{ok,bad}}
-const readingText=a=>(a||[]).map(x=>x[0]+" - "+x[1]+" - "+(x[2]==="open"?"открытый":"закрытый")).join("\n");
-const pairsText=a=>a.map(x=>x[0]+" - "+x[1]).join("\n");
-const gapsText=a=>a.map(x=>x[0]+" | "+x[1]+" | "+x[2].join(", ")).join("\n");
+const isPic=x=>/[\p{Extended_Pictographic}\u20e3]/u.test(x)&&!/\p{L}/u.test(x);
+function parsePairs(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const m=l.match(/^(.+?)(?:\s+[-–—=]\s+|\t+)(.+)$/);if(m){let ru=m[2].trim(),pic="";const k=ru.split(/\s+[-–—=]\s+|\t+/);if(k.length>1&&isPic(k[k.length-1])){pic=k.pop();ru=k.join(" - ")}ok.push(pic?[m[1].trim(),ru,pic]:[m[1].trim(),ru])}else bad.push(n+1)});return{ok,bad}}
+function parseGaps(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split("|").map(x=>x.trim());const q=(p[0]||"").replace(/_{2,}/g,"___");const wrong=(p[2]||"").split(",").map(x=>x.trim()).filter(Boolean);if(q.includes("___")&&p[1]&&wrong.length)ok.push(p[3]?[q,p[1],wrong,p[3]]:[q,p[1],wrong]);else bad.push(n+1)});return{ok,bad}}
+function parseReading(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split(/\s+[-–—=]\s+|\t+/).map(x=>x.trim());const ty=(p[2]||"").toLowerCase();const type=ty.startsWith("откр")||ty==="open"?"open":ty.startsWith("закр")||ty==="closed"?"closed":"";if((p.length===3||(p.length===4&&isPic(p[3])))&&p[0]&&p[1]&&type)ok.push(p[3]?[p[0],p[1],type,p[3]]:[p[0],p[1],type]);else bad.push(n+1)});return{ok,bad}}
+const readingText=a=>(a||[]).map(x=>x[0]+" - "+x[1]+" - "+(x[2]==="open"?"открытый":"закрытый")+(x[3]?" - "+x[3]:"")).join("\n");
+const pairsText=a=>a.map(x=>x[0]+" - "+x[1]+(x[2]?" - "+x[2]:"")).join("\n");
+const gapsText=a=>a.map(x=>x[0]+" | "+x[1]+" | "+x[2].join(", ")+(x[3]?" | "+x[3]:"")).join("\n");
 const newId=p=>p+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const toBase64=s=>{let o="";for(const x of new TextEncoder().encode(s))o+=String.fromCharCode(x);return btoa(o)};
 const fromBase64=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,"")),x=>x.charCodeAt(0)));
@@ -537,13 +549,13 @@ async function fillThumbs(gen){
   try{const c=await up.book.draw(i,240);up.thumbs[i]=c.toDataURL("image/jpeg",.7);const im=document.getElementById("thumb-"+i);if(im)im.src=up.thumbs[i]}catch(e){}
  }
 }
-const uploadPrompt=topic=>'На фото страницы школьного учебника английского языка'+(topic?', тема «'+topic+'»':'')+'. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":""}],"sentences":[{"en":"","ru":""}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}],"reading":[{"word":"cat","ru":"кошка","type":"closed"}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. reading: если на странице есть правила чтения, короткие слова с открытым (type "open") или закрытым (type "closed") слогом; иначе пустой список. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.';
+const uploadPrompt=topic=>'На фото страницы школьного учебника английского языка'+(topic?', тема «'+topic+'»':'')+'. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":"","pic":"🍎"}],"sentences":[{"en":"","ru":"","pic":"🍎"}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}],"reading":[{"word":"cat","ru":"кошка","type":"closed","pic":"🐱"}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. reading: если на странице есть правила чтения, короткие слова с открытым (type "open") или закрытым (type "closed") слогом; иначе пустой список. pic: один эмодзи, который лучше всего показывает значение, потому что дети ещё плохо читают по-русски. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.';
 function parseReply(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<=a)throw new Error("json");return JSON.parse(text.slice(a,b+1))}
 function applyReply(r){
- const pair=a=>Array.isArray(a)?a.filter(x=>x&&x.en&&x.ru).map(x=>[String(x.en).trim(),String(x.ru).trim()]):[];
+ const pair=a=>Array.isArray(a)?a.filter(x=>x&&x.en&&x.ru).map(x=>{const r=[String(x.en).trim(),String(x.ru).trim()];const c=String(x.pic||"").trim();if(c&&isPic(c))r.push(c);return r}):[];
  const gp=Array.isArray(r.gaps)?r.gaps.filter(x=>x&&x.q&&x.answer&&Array.isArray(x.wrong)&&x.wrong.length&&String(x.q).includes("___")).map(x=>[String(x.q).trim(),String(x.answer).trim(),x.wrong.map(String)]):[];
  const words=pair(r.words),sents=pair(r.sentences);
- const rr=Array.isArray(r.reading)?r.reading.filter(x=>x&&x.word&&x.ru&&(x.type==="open"||x.type==="closed")).map(x=>[String(x.word).trim(),String(x.ru).trim(),x.type]):[];
+ const rr=Array.isArray(r.reading)?r.reading.filter(x=>x&&x.word&&x.ru&&(x.type==="open"||x.type==="closed")).map(x=>{const r=[String(x.word).trim(),String(x.ru).trim(),x.type];const c=String(x.pic||"").trim();if(c&&isPic(c))r.push(c);return r}):[];
  if(!words.length&&!sents.length&&!gp.length&&!rr.length)throw new Error("empty");
  const title=up.book?up.book.title:"";const known=DATA.books.find(b=>b.title===title);
  editing={id:null,bookId:known?known.id:(title?"__new":(DATA.books[0]?DATA.books[0].id:"__new")),newBook:known?"":title,title:up.topic.trim()||String(r.title||""),words:pairsText(words),sentences:pairsText(sents),gaps:gapsText(gp),reading:readingText(rr)};
@@ -635,10 +647,10 @@ function editor(){
  book.value=e.bookId;
  const title=el("input",{id:"topic-title",value:e.title,placeholder:"Например, Unit 3. My family",on:{input:x=>{e.title=x.target.value}}});
  const ta=(id,key,ph)=>el("textarea",{id,value:e[key],placeholder:ph,spellcheck:false,on:{input:x=>{e[key]=x.target.value}}});
- const words=ta("topic-words","words","cat - кошка\nto run - бегать");
- const sents=ta("topic-sentences","sentences","I have got a dog. - У меня есть собака.");
+ const words=ta("topic-words","words","cat - кошка - 🐱\nto run - бегать - 🏃");
+ const sents=ta("topic-sentences","sentences","I have got a dog. - У меня есть собака. - 🐶");
  const gaps=ta("topic-gaps","gaps","She ___ to school. | goes | go, going");
- const reading=ta("topic-reading","reading","name - имя - открытый\ncat - кошка - закрытый");
+ const reading=ta("topic-reading","reading","cake - торт - открытый - 🍰\ncat - кошка - закрытый - 🐱");
  const errBox=el("p",{class:"err",hidden:true});
   const cancel=el("button",{class:"ghost",type:"button",textContent:"Отмена",on:{click:()=>{editing=null;render()}}});
  const saveBtn=el("button",{class:"main",type:"button",textContent:"Сохранить тему",on:{click:async()=>{
@@ -662,10 +674,10 @@ function editor(){
  }}});
  return el("section",{class:"box"},el("h3",null,e.id?"Изменить тему":"Новая тема"),
   el("label",{htmlFor:"topic-book"},"Учебник",book),newWrap,el("label",{htmlFor:"topic-title"},"Название темы",title),
-  el("label",{htmlFor:"topic-words"},el("span",null,"Слова и фразы ",el("span",{class:"hint"},"по одной на строку: слово - перевод")),words),
-  el("label",{htmlFor:"topic-sentences"},el("span",null,"Предложения ",el("span",{class:"hint"},"предложение - перевод")),sents),
-  el("label",{htmlFor:"topic-gaps"},el("span",null,"Грамматика с пропуском ",el("span",{class:"hint"},"задание | ответ | неверные варианты")),gaps),
-  el("label",{htmlFor:"topic-reading"},el("span",null,"Чтение и слоги ",el("span",{class:"hint"},"слово - перевод - открытый или закрытый")),reading),
+  el("label",{htmlFor:"topic-words"},el("span",null,"Слова и фразы ",el("span",{class:"hint"},"по одной на строку: слово - перевод - эмодзи-картинка")),words),
+  el("label",{htmlFor:"topic-sentences"},el("span",null,"Предложения ",el("span",{class:"hint"},"предложение - перевод - картинка")),sents),
+  el("label",{htmlFor:"topic-gaps"},el("span",null,"Грамматика с пропуском ",el("span",{class:"hint"},"задание | ответ | неверные варианты | картинка")),gaps),
+  el("label",{htmlFor:"topic-reading"},el("span",null,"Чтение и слоги ",el("span",{class:"hint"},"слово - перевод - открытый или закрытый - картинка")),reading),
   errBox,el("div",{class:"row"},saveBtn,cancel));
 }
 /* ---------- router ---------- */
