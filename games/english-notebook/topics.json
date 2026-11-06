@@ -1010,38 +1010,7 @@
           "🦓"
         ]
       ],
-      "sentences": [
-        [
-          "A is for apple.",
-          "A — apple.",
-          "🍎"
-        ],
-        [
-          "B is for bear.",
-          "B — bear.",
-          "🐻"
-        ],
-        [
-          "C is for cat.",
-          "C — cat.",
-          "🐱"
-        ],
-        [
-          "D is for dog.",
-          "D — dog.",
-          "🐶"
-        ],
-        [
-          "F is for flower.",
-          "F — flower.",
-          "🌼"
-        ],
-        [
-          "S is for snake.",
-          "S — snake.",
-          "🐍"
-        ]
-      ],
+      "sentences": [],
       "gaps": [
         [
           "A, ___, C",
