@@ -1,6 +1,11 @@
-<!doctype html><html lang="ru"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Английская тетрадка</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Английская тетрадка</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Neucha&family=Nunito:wght@500;700;800&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <style id="app-style">
 /* Layout: one column on squared school-notebook paper; the dark theme is a chalkboard. Teacher's red pen is the only loud voice. */
 :root{
@@ -91,22 +96,21 @@ textarea{min-height:128px;resize:vertical}
 @media (max-width:370px){.games{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.shake{animation:none}.bar i{transition:none}}
 </style>
-<script type="application/json" id="app-data">{"baseUrl":"https://aulita55.github.io/aulita-game-lab/games/english-notebook/","books":[{"id":"b-sample","title":"Пример: начальная школа"}],"topics":[{"id":"t-animals","bookId":"b-sample","title":"Animals","words":[["cat","кошка"],["dog","собака"],["horse","лошадь"],["cow","корова"],["rabbit","кролик"],["monkey","обезьяна"],["elephant","слон"],["tiger","тигр"],["bear","медведь"],["frog","лягушка"],["duck","утка"],["sheep","овца"]],"sentences":[["I have got a dog.","У меня есть собака."],["The cat can jump.","Кошка умеет прыгать."],["Monkeys like bananas.","Обезьяны любят бананы."],["This is a big elephant.","Это большой слон."],["A frog can swim.","Лягушка умеет плавать."]],"gaps":[["I ___ got a rabbit.","have",["has","am"]],["She ___ got a horse.","has",["have","is"]],["A duck ___ swim.","can",["cans","is"]],["This is ___ elephant.","an",["a","on"]]]},{"id":"t-present-simple","bookId":"b-sample","title":"Present Simple","words":[["always","всегда"],["usually","обычно"],["often","часто"],["sometimes","иногда"],["never","никогда"],["every day","каждый день"]],"sentences":[["I go to school every day.","Я хожу в школу каждый день."],["She always reads books.","Она всегда читает книги."],["He does not like milk.","Он не любит молоко."],["Do you play football?","Ты играешь в футбол?"],["We never get up late.","Мы никогда не встаём поздно."]],"gaps":[["She ___ to school.","goes",["go","going"]],["I ___ milk every day.","drink",["drinks","drinking"]],["He ___ not like fish.","does",["do","is"]],["___ you play tennis?","Do",["Does","Are"]],["My sister ___ English.","speaks",["speak","speaking"]],["They ___ in London.","live",["lives","living"]]]}]}</script>
+</head>
+<body>
 <div id="app"></div>
 <script id="app-code">
 (function(){
 "use strict";
-const DATA=JSON.parse(document.getElementById("app-data").textContent);
-const FONTS="https://fonts.googleapis.com/css2?family=Neucha&family=Nunito:wght@500;700;800&display=swap";
+let DATA={books:[],topics:[]};
+const API="https://api.github.com/repos/Aulita55/aulita-game-lab/contents/games/english-notebook/topics.json";
 const app=document.getElementById("app");
-const caps={artifact:null,sample:null,downloads:null,teacher:false};
-let run=0,editing=null;
+let run=0,editing=null,loaded=false,loadFailed=false,token=null,teacherReady=false,fileSha=null,loginError="";
 
 /* ---------- helpers ---------- */
 function el(tag,props,...kids){const n=document.createElement(tag);if(props)for(const k in props){if(k==="on"){for(const e in props.on)n.addEventListener(e,props.on[e])}else if(k==="class")n.className=props[k];else if(k in n&&k!=="list")n[k]=props[k];else n.setAttribute(k,props[k])}for(const c of kids.flat()){if(c!==null&&c!==undefined&&c!==false)n.append(c)}return n}
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-const session={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
 function toast(msg){document.querySelectorAll(".toast").forEach(t=>t.remove());const t=el("div",{class:"toast",role:"status",textContent:msg});document.body.append(t);setTimeout(()=>t.remove(),2800)}
 function canSpeak(){return "speechSynthesis" in window&&typeof SpeechSynthesisUtterance!=="undefined"}
 function speak(t){if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.88;speechSynthesis.speak(u)}catch(e){}}
@@ -118,7 +122,7 @@ async function copy(text,input){try{await navigator.clipboard.writeText(text);to
 const starsText=n=>n?"★".repeat(n)+"☆".repeat(3-n):"";
 const bestKey=(t,g)=>"ee-best:"+t+":"+g;
 const bestOf=(t,g)=>Number(store.get(bestKey(t,g))||0);
-function pageUrl(hash){let framed=true;try{framed=window.top!==window.self}catch(e){}const base=framed?DATA.baseUrl:location.origin+location.pathname;return base?base.split("#")[0]+(hash?"#"+hash:""):""}
+function pageUrl(hash){return location.origin+location.pathname+(hash?"#"+hash:"")}
 const topicById=id=>DATA.topics.find(t=>t.id===id);
 const bookById=id=>DATA.books.find(b=>b.id===id);
 const clean=s=>String(s).replace(/^(a|an|the|to)\s+/i,"").trim();
@@ -135,7 +139,7 @@ const GAMES=[
 ];
 
 /* ---------- views ---------- */
-function header(){const b=[];if(caps.teacher)b.push(el("button",{type:"button",textContent:location.hash==="#studio"?"Как видит ученик":"Кабинет учителя",on:{click:()=>{location.hash=location.hash==="#studio"?"":"studio"}}}));return el("header",{class:"top"},el("h1",null,"Английская тетрадка"),b)}
+function header(){const b=[];if(token)b.push(el("button",{type:"button",textContent:location.hash==="#studio"?"Как видит ученик":"Кабинет учителя",on:{click:()=>{location.hash=location.hash==="#studio"?"":"studio"}}}));return el("header",{class:"top"},el("h1",null,"Английская тетрадка"),b)}
 function viewHome(){
  let cur=store.get("ee-book");if(!bookById(cur))cur=DATA.books[0]?DATA.books[0].id:null;
  const list=el("div",{class:"stack"});
@@ -275,36 +279,49 @@ function parseGaps(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{
 const pairsText=a=>a.map(x=>x[0]+" - "+x[1]).join("\n");
 const gapsText=a=>a.map(x=>x[0]+" | "+x[1]+" | "+x[2].join(", ")).join("\n");
 const newId=p=>p+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-function escJson(o){return JSON.stringify(o).replace(/</g,"\\u003c")}
-function buildDoc(data){
- const reset=(document.head.querySelector("style")||{}).textContent||"";
- const css=document.getElementById("app-style").textContent;
- const js=document.getElementById("app-code").textContent;
- return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+reset+'</style></head><body>'
-  +'<title>Английская тетрадка</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="stylesheet" href="'+FONTS+'">\n'
-  +'<style id="app-style">'+css+'</style>\n<script type="application/json" id="app-data">'+escJson(data)+'<\/script>\n<div id="app"></div>\n<script id="app-code">'+js+'<\/script>'
-  +'</body></html>';
+const toBase64=s=>{let o="";for(const x of new TextEncoder().encode(s))o+=String.fromCharCode(x);return btoa(o)};
+const fromBase64=c=>new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\n/g,"")),x=>x.charCodeAt(0)));
+const ghHeaders=t=>({Authorization:"Bearer "+t,Accept:"application/vnd.github+json"});
+function forgetToken(){token=null;teacherReady=false;fileSha=null;try{localStorage.removeItem("ee-token")}catch(e){}}
+async function openStudio(t){
+ let r;
+ try{r=await fetch(API+"?ref=main",{headers:ghHeaders(t),cache:"no-store"})}
+ catch(e){loginError="Нет связи с GitHub. Проверьте интернет и попробуйте снова.";return false}
+ if(!r.ok){forgetToken();loginError=r.status===401?"GitHub не принял ключ. Проверьте, что он скопирован целиком и не истёк.":"У ключа нет доступа к репозиторию aulita-game-lab. Создайте ключ заново по шагам ниже.";return false}
+ const f=await r.json();
+ DATA=JSON.parse(fromBase64(f.content));fileSha=f.sha;loaded=true;loadFailed=false;token=t;teacherReady=true;loginError="";
+ store.set("ee-token",t);
+ return true;
 }
-async function save(data,msg,back){
- if(!caps.artifact){toast("Сохранение здесь недоступно.");return false}
- session.set("ee-return",back||"studio");if(msg)session.set("ee-toast",msg);
- try{await caps.artifact.publish(buildDoc(data));return true}
- catch(e){session.del("ee-return");session.del("ee-toast");
-  if(e&&e.code==="conflict")toast("Страница только что обновилась. Повторите действие после перезагрузки.");
-  else if(e&&(e.code==="not_writer"||e.code==="not_granted"))toast("У вас нет прав менять эту страницу.");
-  else if(e&&e.code==="rate_limited")toast("Слишком часто. Подождите минуту и сохраните снова.");
-  else toast("Не удалось сохранить. Попробуйте ещё раз.");
-  return false}
+async function save(data,msg){
+ let r;
+ try{r=await fetch(API,{method:"PUT",headers:Object.assign(ghHeaders(token),{"Content-Type":"application/json"}),body:JSON.stringify({message:"Обновить темы по английскому",content:toBase64(JSON.stringify(data,null,1)+"\n"),sha:fileSha,branch:"main"})})}
+ catch(e){toast("Нет связи с GitHub. Тема не сохранена, попробуйте ещё раз.");return false}
+ if(r.status===409||r.status===422){toast("Темы изменились на другом устройстве. Обновите страницу и повторите.");return false}
+ if(r.status===401){forgetToken();loginError="Ключ больше не действует. Создайте новый.";render();return false}
+ if(r.status===403||r.status===404){toast("У ключа нет права на запись. Нужно Contents: Read and write.");return false}
+ if(!r.ok){toast("GitHub не сохранил тему. Попробуйте ещё раз.");return false}
+ const res=await r.json();
+ DATA=data;fileSha=res.content.sha;editing=null;render();toast(msg);
+ return true;
+}
+function viewLogin(){
+ const input=el("input",{id:"teacher-key",type:"password",autocomplete:"off",spellcheck:false,placeholder:"github_pat_…"});
+ const err=el("p",{class:"err",hidden:!loginError,textContent:loginError});
+ const btn=el("button",{class:"main",type:"submit",textContent:"Войти"});
+ const steps=["Откройте страницу создания ключа на GitHub.","В Token name напишите «Тетрадка», в Expiration выберите срок.","В Repository access выберите Only select repositories и aulita-game-lab.","В Permissions добавьте Contents и выберите Read and write.","Нажмите Generate token, скопируйте ключ и вставьте сюда."];
+ return [header(),el("section",{class:"stack"},el("h2",null,"Вход для учителя"),el("p",{class:"muted"},"Менять темы может только тот, у кого есть ваш ключ. Он хранится только в этом браузере.")),
+  el("form",{class:"box",on:{submit:async e=>{e.preventDefault();const t=input.value.trim();if(!t)return;btn.disabled=true;btn.textContent="Проверяю…";await openStudio(t);render()}}},el("label",{htmlFor:"teacher-key"},"Ключ GitHub",input),err,el("div",null,btn)),
+  el("section",{class:"box"},el("h3",null,"Как получить ключ"),el("ol",{class:"stack small",style:"margin:0;padding-left:22px"},steps.map(x=>el("li",null,x))),el("div",null,el("a",{class:"btn",href:"https://github.com/settings/personal-access-tokens/new",target:"_blank",rel:"noopener",textContent:"Создать ключ на GitHub"}))),
+  el("div",null,el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{location.hash=""}}}))];
 }
 function viewStudio(){
- const urlI=el("input",{id:"base-url",value:DATA.baseUrl,placeholder:"https://…"});
- const parts=[header(),
-  el("section",{class:"stack"},el("h2",null,"Кабинет учителя"),el("p",{class:"muted"},"Здесь вы добавляете темы и копируете ссылки. Ученики этот раздел не видят."),el("button",{class:"main",type:"button",textContent:"Добавить тему",on:{click:()=>{editing=blankTopic();render()}}})),
+ return [header(),
+  el("section",{class:"stack"},el("h2",null,"Кабинет учителя"),el("p",{class:"muted"},"После сохранения новая тема появится у учеников через 1–2 минуты."),el("div",null,el("button",{class:"main",type:"button",textContent:"Добавить тему",on:{click:()=>{editing=blankTopic();render()}}}))),
   editing?editor():null,
   el("section",{class:"box"},el("h3",null,"Ваши темы"),DATA.topics.length?DATA.books.map(b=>el("div",{class:"stack"},el("p",{class:"muted small"},b.title),DATA.topics.filter(t=>t.bookId===b.id).map(topicRow))):el("p",{class:"muted"},"Тем пока нет.")),
-  el("section",{class:"box"},el("h3",null,"Адрес страницы"),el("label",{htmlFor:"base-url"},"Из него собираются ссылки на темы",urlI),el("span",{class:"hint"},"Сейчас это ваша страница на GitHub. Новая тема откроется там после того, как вы обновите файл."),el("div",null,el("button",{type:"button",textContent:"Сохранить адрес",on:{click:()=>{const d=clone();d.baseUrl=urlI.value.trim();save(d,"Адрес сохранён")}}}))),
-  caps.downloads?el("section",{class:"box"},el("h3",null,"Обновить игры на GitHub"),el("p",{class:"small"},"После новых тем скачайте файл и замените им games/english-notebook/index.html в репозитории aulita-game-lab. Ссылка на тему заработает через пару минут."),el("div",null,el("button",{type:"button",textContent:"Скачать файл",on:{click:async()=>{try{await caps.downloads.save({filename:"index.html",data:buildDoc(DATA)})}catch(e){if(!e||e.code!=="declined")toast("Скачать файл здесь не получилось.")}}}}))):null];
- return parts;
+  el("section",{class:"box"},el("h3",null,"Общая ссылка"),el("p",{class:"small",style:"overflow-wrap:anywhere"},pageUrl("")),el("div",null,el("button",{type:"button",textContent:"Скопировать",on:{click:()=>copy(pageUrl(""))}}))),
+  el("div",null,el("button",{class:"ghost",type:"button",textContent:"Выйти на этом устройстве",on:{click:()=>{forgetToken();location.hash="";render()}}}))];
 }
 const clone=()=>JSON.parse(JSON.stringify(DATA));
 function blankTopic(){return{id:null,bookId:DATA.books[0]?DATA.books[0].id:"__new",title:"",words:"",sentences:"",gaps:""}}
@@ -312,8 +329,8 @@ function topicRow(t){
  const fb=el("input",{hidden:true,readOnly:true,id:"link-"+t.id});
  let armed=false;
  const del=el("button",{class:"ghost",type:"button",textContent:"Удалить",on:{click:()=>{if(!armed){armed=true;del.textContent="Точно удалить?";return}const d=clone();d.topics=d.topics.filter(x=>x.id!==t.id);d.books=d.books.filter(b=>d.topics.some(x=>x.bookId===b.id));save(d,"Тема удалена")}}});
- return el("div",{class:"list-row"},el("strong",null,t.title),el("span",{class:"hint"},t.words.length+" слов · "+t.sentences.length+" предложений · "+t.gaps.length+" заданий"),
-  el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Скопировать ссылку",on:{click:()=>{const u=pageUrl(t.id);if(!u){toast("Сначала сохраните адрес страницы ниже.");return}copy("Игра по английскому, тема «"+t.title+"»: "+u,fb)}}}),
+ return el("div",{class:"list-row"},el("strong",null,t.title),el("span",{class:"hint"},"Слова: "+t.words.length+" · Предложения: "+t.sentences.length+" · Задания: "+t.gaps.length),
+  el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Скопировать ссылку",on:{click:()=>{const u=pageUrl(t.id);copy("Игра по английскому, тема «"+t.title+"»: "+u,fb)}}}),
    el("button",{type:"button",textContent:"Открыть",on:{click:()=>{location.hash=t.id}}}),
    el("button",{type:"button",textContent:"Изменить",on:{click:()=>{editing={id:t.id,bookId:t.bookId,title:t.title,words:pairsText(t.words),sentences:pairsText(t.sentences),gaps:gapsText(t.gaps)};render();window.scrollTo(0,0)}}}),del),fb);
 }
@@ -329,8 +346,7 @@ function editor(){
  const sents=ta("topic-sentences","sentences","I have got a dog. - У меня есть собака.");
  const gaps=ta("topic-gaps","gaps","She ___ to school. | goes | go, going");
  const errBox=el("p",{class:"err",hidden:true});
- const scan=scanner(e,{title,words,sents,gaps});
- const cancel=el("button",{class:"ghost",type:"button",textContent:"Отмена",on:{click:()=>{editing=null;render()}}});
+  const cancel=el("button",{class:"ghost",type:"button",textContent:"Отмена",on:{click:()=>{editing=null;render()}}});
  const saveBtn=el("button",{class:"main",type:"button",textContent:"Сохранить тему",on:{click:async()=>{
   const w=parsePairs(e.words),s=parsePairs(e.sentences),g=parseGaps(e.gaps);const errs=[];
   if(!e.title.trim())errs.push("Напишите название темы.");
@@ -349,62 +365,35 @@ function editor(){
   const ok=await save(d,"Тема сохранена. Скопируйте ссылку в списке ниже.");
   if(!ok){saveBtn.disabled=false;saveBtn.textContent="Сохранить тему"}
  }}});
- return el("section",{class:"box"},el("h3",null,e.id?"Изменить тему":"Новая тема"),scan,
+ return el("section",{class:"box"},el("h3",null,e.id?"Изменить тему":"Новая тема"),
   el("label",{htmlFor:"topic-book"},"Учебник",book),newWrap,el("label",{htmlFor:"topic-title"},"Название темы",title),
   el("label",{htmlFor:"topic-words"},el("span",null,"Слова и фразы ",el("span",{class:"hint"},"по одной на строку: слово - перевод")),words),
   el("label",{htmlFor:"topic-sentences"},el("span",null,"Предложения ",el("span",{class:"hint"},"предложение - перевод")),sents),
   el("label",{htmlFor:"topic-gaps"},el("span",null,"Грамматика с пропуском ",el("span",{class:"hint"},"задание | ответ | неверные варианты")),gaps),
   errBox,el("div",{class:"row"},saveBtn,cancel));
 }
-function scanner(e,f){
- if(!caps.sample)return null;
- const status=el("p",{class:"small muted",hidden:true});
- let ctl=null;
- const stop=el("button",{class:"ghost",type:"button",textContent:"Остановить",hidden:true,on:{click:()=>ctl&&ctl.abort()}});
- const input=el("input",{id:"scan-files",type:"file",accept:"image/jpeg,image/png,image/webp",multiple:true,on:{change:async()=>{
-  const files=[...input.files];if(!files.length)return;
-  status.hidden=false;status.textContent="Читаю страницы. Это занимает до минуты…";stop.hidden=false;ctl=new AbortController();
-  try{
-   const r=await caps.sample.json('На фото страницы школьного учебника английского языка. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":""}],"sentences":[{"en":"","ru":""}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.',{images:files,signal:ctl.signal});
-   const pair=a=>Array.isArray(a)?a.filter(x=>x&&x.en&&x.ru).map(x=>[String(x.en).trim(),String(x.ru).trim()]):[];
-   const gp=Array.isArray(r.gaps)?r.gaps.filter(x=>x&&x.q&&x.answer&&Array.isArray(x.wrong)&&x.wrong.length&&String(x.q).includes("___")).map(x=>[String(x.q).trim(),String(x.answer).trim(),x.wrong.map(String)]):[];
-   const join=(old,add)=>[old.trim(),add].filter(Boolean).join("\n");
-   if(!e.title.trim()&&r.title){e.title=String(r.title);f.title.value=e.title}
-   e.words=join(e.words,pairsText(pair(r.words)));f.words.value=e.words;
-   e.sentences=join(e.sentences,pairsText(pair(r.sentences)));f.sents.value=e.sentences;
-   e.gaps=join(e.gaps,gapsText(gp));f.gaps.value=e.gaps;
-   status.textContent="Готово. Проверьте текст ниже и исправьте, если нужно. Сами фото в игру не попадают.";
-  }catch(err){
-   const code=err&&err.code;
-   status.textContent=code==="cancelled"?"Остановлено.":code==="not_granted"||code==="sampling_disabled"?"Распознавание не разрешено. Введите слова вручную.":code==="image_rejected"?"Этот файл не подошёл. Попробуйте другое фото.":code==="rate_limited"?"Достигнут лимит. Попробуйте позже.":"Не получилось распознать. Попробуйте более чёткое фото.";
-  }finally{stop.hidden=true;input.value=""}
- }}});
- return el("div",{class:"stack"},el("label",{htmlFor:"scan-files"},el("span",null,"Фото страниц учебника ",el("span",{class:"hint"},"заполнят поля ниже")),input),el("div",{class:"row"},status,stop));
-}
-
 /* ---------- router ---------- */
 function render(){
  const h=location.hash.replace(/^#/,"");run++;
  let view;
- if(h==="studio"&&caps.teacher)view=viewStudio();
+ if(h==="studio")view=teacherReady?viewStudio():viewLogin();
+ else if(!loaded)view=loadFailed?[header(),el("p",null,"Не удалось загрузить темы. Проверьте интернет."),el("div",null,el("button",{class:"main",type:"button",textContent:"Попробовать снова",on:{click:loadTopics}}))]:[header(),el("p",{class:"muted"},"Загружаю темы…")];
  else{const t=topicById(h);view=t?viewTopic(t):viewHome()}
  app.replaceChildren(el("main",{class:"wrap"},view));
 }
-window.addEventListener("hashchange",()=>{window.scrollTo(0,0);render()});
-render();
+async function loadTopics(){
+ loadFailed=false;render();
+ try{const r=await fetch("topics.json?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("load");if(!teacherReady){DATA=await r.json();loaded=true}}
+ catch(e){if(!teacherReady)loadFailed=true}
+ render();
+}
+window.addEventListener("hashchange",async()=>{window.scrollTo(0,0);if(location.hash==="#studio"&&token&&!teacherReady)await openStudio(token);render()});
 (async function(){
- if(!window.claude||!window.claude.use)return;
- const u=await window.claude.use("user");
- const can=u?await u.canEdit():false;
- if(!can)return;
- caps.teacher=true;
- const [a,s,d]=await Promise.all([window.claude.use("artifact"),window.claude.use("sample"),window.claude.use("downloads")]);
- caps.artifact=a;caps.downloads=d;
- if(s){const l=await s.limits().catch(()=>null);if(l&&l.images)caps.sample=s}
- const back=session.get("ee-return"),note=session.get("ee-toast");session.del("ee-return");session.del("ee-toast");
- if(back&&location.hash!=="#"+back){location.hash=back}else render();
- if(note)toast(note);
+ token=store.get("ee-token");
+ if(token&&location.hash==="#studio")await openStudio(token);
+ if(!teacherReady)await loadTopics();else render();
 })();
 })();
 </script>
-</body></html>
+</body>
+</html>
