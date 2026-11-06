@@ -1,0 +1,224 @@
+{
+ "books": [
+  {
+   "id": "b-sample",
+   "title": "Пример: начальная школа"
+  }
+ ],
+ "topics": [
+  {
+   "id": "t-animals",
+   "bookId": "b-sample",
+   "title": "Animals",
+   "words": [
+    [
+     "cat",
+     "кошка"
+    ],
+    [
+     "dog",
+     "собака"
+    ],
+    [
+     "horse",
+     "лошадь"
+    ],
+    [
+     "cow",
+     "корова"
+    ],
+    [
+     "rabbit",
+     "кролик"
+    ],
+    [
+     "monkey",
+     "обезьяна"
+    ],
+    [
+     "elephant",
+     "слон"
+    ],
+    [
+     "tiger",
+     "тигр"
+    ],
+    [
+     "bear",
+     "медведь"
+    ],
+    [
+     "frog",
+     "лягушка"
+    ],
+    [
+     "duck",
+     "утка"
+    ],
+    [
+     "sheep",
+     "овца"
+    ]
+   ],
+   "sentences": [
+    [
+     "I have got a dog.",
+     "У меня есть собака."
+    ],
+    [
+     "The cat can jump.",
+     "Кошка умеет прыгать."
+    ],
+    [
+     "Monkeys like bananas.",
+     "Обезьяны любят бананы."
+    ],
+    [
+     "This is a big elephant.",
+     "Это большой слон."
+    ],
+    [
+     "A frog can swim.",
+     "Лягушка умеет плавать."
+    ]
+   ],
+   "gaps": [
+    [
+     "I ___ got a rabbit.",
+     "have",
+     [
+      "has",
+      "am"
+     ]
+    ],
+    [
+     "She ___ got a horse.",
+     "has",
+     [
+      "have",
+      "is"
+     ]
+    ],
+    [
+     "A duck ___ swim.",
+     "can",
+     [
+      "cans",
+      "is"
+     ]
+    ],
+    [
+     "This is ___ elephant.",
+     "an",
+     [
+      "a",
+      "on"
+     ]
+    ]
+   ]
+  },
+  {
+   "id": "t-present-simple",
+   "bookId": "b-sample",
+   "title": "Present Simple",
+   "words": [
+    [
+     "always",
+     "всегда"
+    ],
+    [
+     "usually",
+     "обычно"
+    ],
+    [
+     "often",
+     "часто"
+    ],
+    [
+     "sometimes",
+     "иногда"
+    ],
+    [
+     "never",
+     "никогда"
+    ],
+    [
+     "every day",
+     "каждый день"
+    ]
+   ],
+   "sentences": [
+    [
+     "I go to school every day.",
+     "Я хожу в школу каждый день."
+    ],
+    [
+     "She always reads books.",
+     "Она всегда читает книги."
+    ],
+    [
+     "He does not like milk.",
+     "Он не любит молоко."
+    ],
+    [
+     "Do you play football?",
+     "Ты играешь в футбол?"
+    ],
+    [
+     "We never get up late.",
+     "Мы никогда не встаём поздно."
+    ]
+   ],
+   "gaps": [
+    [
+     "She ___ to school.",
+     "goes",
+     [
+      "go",
+      "going"
+     ]
+    ],
+    [
+     "I ___ milk every day.",
+     "drink",
+     [
+      "drinks",
+      "drinking"
+     ]
+    ],
+    [
+     "He ___ not like fish.",
+     "does",
+     [
+      "do",
+      "is"
+     ]
+    ],
+    [
+     "___ you play tennis?",
+     "Do",
+     [
+      "Does",
+      "Are"
+     ]
+    ],
+    [
+     "My sister ___ English.",
+     "speaks",
+     [
+      "speak",
+      "speaking"
+     ]
+    ],
+    [
+     "They ___ in London.",
+     "live",
+     [
+      "lives",
+      "living"
+     ]
+    ]
+   ]
+  }
+ ]
+}
