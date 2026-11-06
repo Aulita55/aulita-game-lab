@@ -1,17 +1,17 @@
-# АюлитА English Notebook
+# АюлитА · Тетрадь
 
-Checkpoint: 6 November 2026. Base: `fbea860`.
+Учебные упражнения Fly High 2 сохранены. В Animals добавлены три самостоятельные механики внутри урока: ходилка на 24 клетки с бонусами/ловушками, крестики-нолики на три раунда и генерируемый лабиринт с четырьмя ключами.
 
-- `index.html`: existing games, teacher interface, browser speech and saved scores.
-- `topics.json`: approved teaching content; unchanged by the design update.
-- `aulita.css`: light squared paper, orange/green accents and responsive alphabet board.
-- `pics/alphabet-3d.webp`: generated 6 × 5 sprite atlas, first 26 cells in approved alphabet order. No letters or answer labels in the art. Each cell is square. Last four cells are blank.
-- Brand wordmark and Oscar teacher are reused from the repository's `assets/`.
+Для каждой игры доступны «Слушаю», «Узнаю», «Говорю», «Объясняю», крупные картинки для дошкольников, один игрок, два ученика и соперник-котик. Новые механики пока включены только в `fh2-g1-animals`; перенос в другие уроки — следующий этап после проверки.
 
-Approved Fly High 2 order: apple, bear, cat, dog, elephant, flower, goat, hippo, insect, jelly, kangaroo, lion, monkey, nest, octopus, penguin, queen, rabbit, snake, tiger, umbrella, vulture, whale, **fox (X)**, yo-yo, zebra.
+Цвета и животные дополнены «Говорим»: любимый цвет/животное, I like / I don't like, размер, цвет и называние животного. В мини-играх «Объясняю» принимает несколько корректных простых описаний показанного животного, без видимого образца до открытия подсказки. Это проверка распознанной фразы по допустимым моделям, не оценка акцента и не свободная семантическая проверка любой речи.
 
-Keep `ee-best:<topic>:<game>`, `ee-book`, `ee-name`, teacher settings and existing topic IDs compatible. Keep “A is for…” phrases out of Alphabet. Other topics still use local Twemoji where custom art is unavailable; retain CC BY 4.0 attribution.
+Запись использует MediaRecorder; распознавание — SpeechRecognition/webkitSpeechRecognition, `en-GB`. Автопроверка зависит от браузера и доступности его службы; браузер может передавать звук своей службе распознавания. Нет серверной загрузки в приложение или API-ключей. Только последняя запись каждой темы сохраняется в IndexedDB на устройстве; есть прослушивание и скачивание. При выходе, скрытии вкладки или через 15 секунд микрофон останавливается. При отказе разрешений, недоступном распознавании или отсутствии звука успешный ответ не начисляется.
 
-Validation: inline JavaScript syntax and `git diff --check`; simulated DOM checks for 26 word/sprite/speech mappings, all 10 Alphabet game screens, a 20-card completion, six-pair completion, previous scores, reload persistence, book switching and teacher login screen. The simulation stubs browser speech and scroll; it does not prove audible speech or visual layout. Existing GitHub Pages was opened and still showed the previous release. Local visual/browser QA was blocked by the separate browser environment and unavailable local Chromium binary. Responsive CSS, physical touch, audible speech and fullscreen still need a browser pilot.
+`art.js` сопоставляет все картинки восьми текущих тем с 3D-атласами/оригинальными героями. Числа 1–20 показаны точными объёмными цифрами средствами CSS; числовые предложения используют соответствующее число объектов. Desk/chair, book/read, grey/elephant имеют разные смысловые изображения. Исходная лексика и отсутствие «A is for…» сохранены; X — fox.
 
-Next: review this branch, visually check the design at desktop/mobile widths, then merge and verify GitHub Pages after owner publication approval. Level locks, microphone and detailed error statistics remain separate future work.
+`ee-best:<topic>:<game>`, `ee-book`, `ee-name` и кабинет учителя совместимы с прежней версией. Новые данные: `ee-skills-v1:<topic>:<player>` для попыток, верных и самостоятельных ответов отдельно по каждому навыку и двум игрокам. Победы, броски кубика и ходы компьютерного соперника не являются языковыми результатами. Это локальная практика, не диагноз освоения и не учётная запись ученика.
+
+Проверки: `node --test games/english-notebook/tests/notebook.test.cjs` (8 тестов; 100 проходимых лабиринтов, 144 перехода ходилки, выигрыш/защита бота, грамматика, покрытие 3D-артом, изоляция навыков). Дополнительная DOM-симуляция: полный матч крестиков-ноликов, проход лабиринта, бросок/задание ходилки, запись и сопоставление распознанного текста, прекращение записи при уходе, сохранение/восстановление записи, прежние результаты. Симуляция микрофона не заменяет проверку настоящего детского голоса в браузере.
+
+Визуальная браузерная проверка выполняется после публикации. Aulita Platform и остальные игры репозитория не изменяются. Animal Rescue, What's Changed? и новая English Race пока не реализованы.
