@@ -93,6 +93,14 @@ textarea{min-height:128px;resize:vertical}
 .list-row{display:flex;flex-direction:column;gap:8px;padding-block:12px;border-top:2px dashed var(--grid)}
 .list-row:first-of-type{border-top:0}
 .list-row strong{font:400 23px/1.15 var(--display);color:var(--ink);overflow-wrap:anywhere}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:430px;overflow-y:auto;padding:4px}
+.thumb{padding:4px;position:relative;box-shadow:none;border-color:var(--muted);min-width:0}
+.thumb:active{transform:none}
+.thumb img{display:block;width:100%;aspect-ratio:3/4;object-fit:contain;background:var(--grid);border-radius:5px}
+.thumb span{display:block;text-align:center;font-size:13px;padding-top:3px}
+.thumb.on{border-color:var(--pen);border-width:3px;padding:3px;background:var(--sun);color:var(--on-pop)}
+.sub{border-top:2px dashed var(--grid);padding-top:14px}
+summary{font-weight:800;cursor:pointer;color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;max-width:calc(100% - 32px);z-index:20;text-align:center}
 .memory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 .mem{min-height:88px;padding:6px 4px;overflow-wrap:anywhere;font-size:15px}
@@ -177,7 +185,7 @@ function viewHome(){
  function paint(){chips.replaceChildren(...DATA.books.map(b=>el("button",{class:"chip",type:"button",textContent:b.title,ariaPressed:String(b.id===cur),on:{click:()=>{cur=b.id;store.set("ee-book",cur);paint()}}})));
   list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map(t=>{const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;return el("button",{class:"topic",type:"button",on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,t.title)),el("span",{class:"muted small"},got+" из "+total+" игр"))}))}
  paint();
- return [header(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Выбери учебник"),chips,el("h2",null,"Выбери тему"),list):el("p",{class:"muted"},"Учитель пока не добавил темы.")]
+ return [header(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Выбери учебник"),chips,el("h2",null,"Выбери тему"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}}))]
 }
 function viewTopic(t){
  const book=bookById(t.bookId);
@@ -452,10 +460,113 @@ function viewLogin(){
   el("section",{class:"box"},el("h3",null,"Как получить ключ"),el("ol",{class:"stack small",style:"margin:0;padding-left:22px"},steps.map(x=>el("li",null,x))),el("div",null,el("a",{class:"btn",href:"https://github.com/settings/personal-access-tokens/new",target:"_blank",rel:"noopener",textContent:"Создать ключ на GitHub"}))),
   el("div",null,el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{location.hash=""}}}))];
 }
+/* ---------- textbook upload ---------- */
+const up={book:null,selected:new Set(),shown:24,thumbs:{},topic:"",status:"",gen:0,ctl:null,open:false,saved:[],busy:false};
+const MODEL="claude-sonnet-5-5",MAX_PAGES=6;
+function idb(mode,fn){return new Promise((res,rej)=>{const o=indexedDB.open("ee-books",1);o.onupgradeneeded=()=>o.result.createObjectStore("files",{keyPath:"id"});o.onerror=()=>rej(o.error);o.onsuccess=()=>{const tx=o.result.transaction("files",mode);const r=fn(tx.objectStore("files"));tx.oncomplete=()=>{o.result.close();res(r.result)};tx.onerror=()=>rej(tx.error)}})}
+async function refreshSaved(){try{up.saved=await idb("readonly",st=>st.getAllKeys())}catch(e){up.saved=[]}}
+function loadPdfLib(){if(window.pdfjsLib)return Promise.resolve();return new Promise((res,rej)=>{const x=document.createElement("script");x.src="vendor/pdf.min.js";x.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc="vendor/pdf.worker.min.js";res()};x.onerror=rej;document.head.append(x)})}
+function scaled(w,h,max){const k=max/Math.max(w,h);return{w:Math.round(w*k),h:Math.round(h*k),k}}
+async function openBook(title,files){
+ const gen=++up.gen;up.book=null;up.selected=new Set();up.shown=24;up.thumbs={};up.topic="";up.status="Открываю учебник…";render();
+ try{
+  const pdf=files.find(f=>f.type==="application/pdf"||/\.pdf$/i.test(f.name||""));let book;
+  if(pdf){
+   await loadPdfLib();
+   const doc=await window.pdfjsLib.getDocument({data:await pdf.arrayBuffer()}).promise;
+   book={title,pages:doc.numPages,draw:async(i,max)=>{const page=await doc.getPage(i+1);const v=page.getViewport({scale:1});const z=scaled(v.width,v.height,max);const vp=page.getViewport({scale:z.k});const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);await page.render({canvasContext:g,viewport:vp}).promise;return c}};
+  }else{
+   const imgs=files.filter(f=>/^image\//.test(f.type)).sort((a,b)=>(a.name||"").localeCompare(b.name||"",undefined,{numeric:true}));
+   if(!imgs.length)throw new Error("empty");
+   book={title,pages:imgs.length,draw:async(i,max)=>{const b=await createImageBitmap(imgs[i]);const z=scaled(b.width,b.height,Math.min(max,Math.max(b.width,b.height)));const c=document.createElement("canvas");c.width=z.w;c.height=z.h;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(b,0,0,z.w,z.h);return c}};
+  }
+  if(gen!==up.gen)return;
+  up.book=book;up.status="";
+  try{await idb("readwrite",st=>st.put({id:title,files}));await refreshSaved()}catch(e){}
+  render();fillThumbs(gen);
+ }catch(e){if(gen===up.gen){up.status="Не получилось открыть файл. Подойдут PDF без пароля и фото JPG или PNG.";render()}}
+}
+async function fillThumbs(gen){
+ for(let i=0;up.book&&i<Math.min(up.shown,up.book.pages);i++){
+  if(gen!==up.gen)return;
+  if(up.thumbs[i])continue;
+  try{const c=await up.book.draw(i,240);up.thumbs[i]=c.toDataURL("image/jpeg",.7);const im=document.getElementById("thumb-"+i);if(im)im.src=up.thumbs[i]}catch(e){}
+ }
+}
+const uploadPrompt=topic=>'На фото страницы школьного учебника английского языка'+(topic?', тема «'+topic+'»':'')+'. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":""}],"sentences":[{"en":"","ru":""}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.';
+function parseReply(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<=a)throw new Error("json");return JSON.parse(text.slice(a,b+1))}
+function applyReply(r){
+ const pair=a=>Array.isArray(a)?a.filter(x=>x&&x.en&&x.ru).map(x=>[String(x.en).trim(),String(x.ru).trim()]):[];
+ const gp=Array.isArray(r.gaps)?r.gaps.filter(x=>x&&x.q&&x.answer&&Array.isArray(x.wrong)&&x.wrong.length&&String(x.q).includes("___")).map(x=>[String(x.q).trim(),String(x.answer).trim(),x.wrong.map(String)]):[];
+ const words=pair(r.words),sents=pair(r.sentences);
+ if(!words.length&&!sents.length&&!gp.length)throw new Error("empty");
+ const title=up.book?up.book.title:"";const known=DATA.books.find(b=>b.title===title);
+ editing={id:null,bookId:known?known.id:(title?"__new":(DATA.books[0]?DATA.books[0].id:"__new")),newBook:known?"":title,title:up.topic.trim()||String(r.title||""),words:pairsText(words),sentences:pairsText(sents),gaps:gapsText(gp)};
+ up.selected=new Set();up.status="";render();window.scrollTo(0,0);toast("Задания готовы. Проверьте их и сохраните тему.");
+}
+const pickedPages=()=>[...up.selected].sort((a,b)=>a-b);
+async function generate(){
+ const key=store.get("ee-claude-key");if(!key||!up.selected.size)return;
+ up.busy=true;up.status="Готовлю страницы…";up.ctl=new AbortController();render();
+ try{
+  const content=[];
+  for(const i of pickedPages()){const c=await up.book.draw(i,1568);content.push({type:"image",source:{type:"base64",media_type:"image/jpeg",data:c.toDataURL("image/jpeg",.85).split(",")[1]}})}
+  content.push({type:"text",text:uploadPrompt(up.topic.trim())});
+  up.status="Читаю страницы и составляю задания. Обычно это занимает до минуты…";render();
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal:up.ctl.signal,headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:MODEL,max_tokens:4000,messages:[{role:"user",content}]})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok){const m=(d.error&&d.error.message)||"";throw {msg:r.status===401?"Ключ Claude не подошёл. Проверьте его или создайте новый.":r.status===403?"Claude отказал в доступе. Возможно, ключ не работает в вашем регионе. Сделайте задания через чат.":r.status===429?"Слишком много запросов. Подождите минуту и попробуйте снова.":/credit/i.test(m)?"На счёте ключа закончились деньги. Пополните баланс.":"Claude не смог обработать страницы. Попробуйте выбрать меньше страниц."}}
+  up.busy=false;up.ctl=null;
+  applyReply(parseReply((d.content||[]).map(x=>x.text||"").join("")));
+  return;
+ }catch(e){
+  up.status=e&&e.name==="AbortError"?"Остановлено.":e&&e.msg?e.msg:e&&e.name==="TypeError"?"Нет связи с Claude. Возможно, он недоступен в вашем регионе. Сделайте задания через чат.":"Не удалось разобрать ответ. Попробуйте ещё раз.";
+ }
+ up.busy=false;up.ctl=null;render();
+}
+async function savePictures(){
+ for(const i of pickedPages()){const c=await up.book.draw(i,1568);const b=await new Promise(r=>c.toBlob(r,"image/jpeg",.85));const u=URL.createObjectURL(b);const a=el("a",{href:u,download:up.book.title.replace(/[^\p{L}\p{N}]+/gu,"-")+"-"+(i+1)+".jpg"});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);await new Promise(r=>setTimeout(r,350))}
+}
+function uploadPanel(){
+ const file=el("input",{id:"book-file",type:"file",accept:"application/pdf,image/jpeg,image/png,image/webp",multiple:true,on:{change:()=>{const f=[...file.files];if(!f.length)return;openBook(f[0].name.replace(/\.[^.]+$/,""),f)}}});
+ const parts=[el("h3",null,"Загрузить учебник"),el("p",{class:"small"},"Выберите PDF или фото страниц. Файл останется только на этом устройстве: на GitHub попадут лишь слова и задания."),el("label",{htmlFor:"book-file"},"Файл учебника",file)];
+ if(up.saved.length)parts.push(el("div",{class:"stack"},el("p",{class:"hint"},"Уже загружены на этом устройстве"),el("div",{class:"chips"},up.saved.map(t=>el("button",{class:"chip",type:"button",textContent:t,ariaPressed:String(!!up.book&&up.book.title===t),on:{click:async()=>{try{const v=await idb("readonly",st=>st.get(t));if(v)openBook(v.id,v.files)}catch(e){toast("Не получилось открыть учебник.")}}}})))));
+ const status=el("p",{class:"small",role:"status",hidden:!up.status,textContent:up.status});
+ if(!up.book){parts.push(status);return el("section",{class:"box"},parts)}
+ const nameI=el("input",{id:"book-name",value:up.book.title,on:{change:e=>{const v=e.target.value.trim();if(v)up.book.title=v}}});
+ const count=el("p",{class:"hint"});
+ const paint=()=>{const list=pickedPages().map(x=>x+1);count.textContent=list.length?"Выбраны страницы: "+list.join(", "):"Отметьте страницы этой темы, не больше "+MAX_PAGES+".";if(go)go.disabled=!list.length||up.busy;if(pics)pics.disabled=!list.length};
+ let go=null,pics=null;
+ const grid=el("div",{class:"thumbs"});
+ for(let i=0;i<Math.min(up.shown,up.book.pages);i++){
+  const b=el("button",{class:"thumb"+(up.selected.has(i)?" on":""),type:"button",id:"page-"+i,ariaPressed:String(up.selected.has(i)),on:{click:()=>{if(up.selected.has(i))up.selected.delete(i);else{if(up.selected.size>=MAX_PAGES){toast("Можно выбрать не больше "+MAX_PAGES+" страниц.");return}up.selected.add(i)}b.classList.toggle("on",up.selected.has(i));b.ariaPressed=String(up.selected.has(i));paint()}}},el("img",{id:"thumb-"+i,alt:"Страница "+(i+1),src:up.thumbs[i]||"data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="}),el("span",null,String(i+1)));
+  grid.append(b);
+ }
+ const jump=el("input",{id:"page-jump",type:"number",min:1,max:up.book.pages,placeholder:"Страница",style:"max-width:130px"});
+ const goPage=()=>{const n=Number(jump.value);if(!n||n<1||n>up.book.pages)return;if(n>up.shown){up.shown=Math.ceil(n/24)*24;render();fillThumbs(up.gen)}const t=document.getElementById("page-"+(n-1));if(t)t.scrollIntoView({block:"center"})};
+ const topicI=el("input",{id:"upload-topic",value:up.topic,placeholder:"Например, Unit 3. My family",on:{input:e=>{up.topic=e.target.value}}});
+ const key=store.get("ee-claude-key");
+ go=el("button",{class:"main",type:"button",textContent:up.busy?"Составляю…":"Сделать задания",on:{click:generate}});
+ pics=el("button",{type:"button",textContent:"Сохранить страницы картинками",on:{click:savePictures}});
+ const keyI=el("input",{id:"claude-key",type:"password",autocomplete:"off",placeholder:"sk-ant-…"});
+ const reply=el("textarea",{id:"ai-reply",placeholder:"Вставьте сюда ответ помощника"});
+ const replyErr=el("p",{class:"err",hidden:true});
+ parts.push(el("label",{htmlFor:"book-name"},"Название учебника",nameI),
+  el("div",{class:"row"},jump,el("button",{type:"button",textContent:"Перейти",on:{click:goPage}}),el("span",{class:"hint"},"Всего страниц: "+up.book.pages)),
+  grid,up.shown<up.book.pages?el("div",null,el("button",{type:"button",textContent:"Показать ещё страницы",on:{click:()=>{up.shown+=24;render();fillThumbs(up.gen)}}})):null,
+  count,el("label",{htmlFor:"upload-topic"},"Название темы",topicI),status);
+ const auto=key?el("div",{class:"row"},go,up.busy?el("button",{class:"ghost",type:"button",textContent:"Остановить",on:{click:()=>up.ctl&&up.ctl.abort()}}):null,el("button",{class:"ghost",type:"button",textContent:"Убрать ключ Claude",on:{click:()=>{try{localStorage.removeItem("ee-claude-key")}catch(e){}render()}}}))
+   :el("details",{class:"sub"},el("summary",null,"Автоматически, с платным ключом API Claude"),el("div",{class:"stack",style:"padding-top:10px"},el("p",{class:"small"},"Задания появятся прямо здесь, а каждый запрос оплачивается с вашего счёта API. Ключ хранится только в этом браузере. В России API Claude официально недоступен."),el("label",{htmlFor:"claude-key"},"Ключ API Claude",keyI),el("div",{class:"row"},el("button",{type:"button",textContent:"Сохранить ключ",on:{click:()=>{const v=keyI.value.trim();if(!v)return;store.set("ee-claude-key",v);render()}}}),el("a",{class:"btn",href:"https://console.anthropic.com/settings/keys",target:"_blank",rel:"noopener",textContent:"Получить ключ"}))));
+ const chat=el("div",{class:"stack sub"},el("h3",null,"Сделать задания через чат"),el("ol",{class:"stack small",style:"margin:0;padding-left:22px"},["Нажмите «Сохранить страницы картинками» и «Скопировать запрос».","Откройте чат с Claude или другим помощником, прикрепите картинки и вставьте запрос.","Скопируйте ответ помощника целиком, вставьте сюда и нажмите «Создать задания»."].map(x=>el("li",null,x))),el("div",{class:"row"},pics,el("button",{type:"button",textContent:"Скопировать запрос",on:{click:()=>copy(uploadPrompt(up.topic.trim()),reply)}})),reply,replyErr,el("div",null,el("button",{type:"button",textContent:"Создать задания",on:{click:()=>{try{applyReply(parseReply(reply.value))}catch(e){replyErr.textContent="В ответе нет заданий в нужном формате. Скопируйте ответ помощника целиком.";replyErr.hidden=false}}}})));
+ parts.push(key?auto:chat,key?chat:auto);
+ paint();
+ return el("section",{class:"box"},parts);
+}
 function viewStudio(){
  return [header(),
-  el("section",{class:"stack"},el("h2",null,"Кабинет учителя"),el("p",{class:"muted"},"После сохранения новая тема появится у учеников через 1–2 минуты."),el("div",null,el("button",{class:"main",type:"button",textContent:"Добавить тему",on:{click:()=>{editing=blankTopic();render()}}}))),
+  el("section",{class:"stack"},el("h2",null,"Кабинет учителя"),el("p",{class:"muted"},"После сохранения новая тема появится у учеников через 1–2 минуты."),el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Загрузить учебник",on:{click:async()=>{up.open=!up.open;editing=null;await refreshSaved();render();if(up.book)fillThumbs(up.gen)}}}),el("button",{type:"button",textContent:"Добавить тему вручную",on:{click:()=>{editing=blankTopic();render()}}}))),
   editing?editor():null,
+  up.open&&!editing?uploadPanel():null,
   el("section",{class:"box"},el("h3",null,"Ваши темы"),DATA.topics.length?DATA.books.map(b=>el("div",{class:"stack"},el("p",{class:"muted small"},b.title),DATA.topics.filter(t=>t.bookId===b.id).map(topicRow))):el("p",{class:"muted"},"Тем пока нет.")),
   el("section",{class:"box"},el("h3",null,"Общая ссылка"),el("p",{class:"small",style:"overflow-wrap:anywhere"},pageUrl("")),el("div",null,el("button",{type:"button",textContent:"Скопировать",on:{click:()=>copy(pageUrl(""))}}))),
   el("div",null,el("button",{class:"ghost",type:"button",textContent:"Выйти на этом устройстве",on:{click:()=>{forgetToken();location.hash="";render()}}}))];
