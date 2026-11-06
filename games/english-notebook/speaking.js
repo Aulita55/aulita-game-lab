@@ -44,7 +44,7 @@ function play(t,c,h,options={}){
  if(!mediaAvailable){mic.disabled=true;feedback.textContent='Запись недоступна в этом браузере. Откройте страницу по HTTPS в браузере с поддержкой микрофона.'}
  const autoNotice=el('p',{class:'hint'},Recognition?'Автопроверка сравнивает распознанные слова с образцом, без оценки акцента. Для распознавания браузер может передавать речь своей службе.':'В этом браузере автопроверка недоступна. Можно записать и прослушать себя.');
  function target(){return options.fixed||model(kind,mode.value,word.value,detail.value)}
- function setBusy(b){[mode,word,detail,listen,sample,hint].forEach(n=>n.disabled=b);mic.disabled=!mediaAvailable;mic.classList.toggle('recording',b);micText.textContent=b?'Остановить запись':'Записать фразу';mic.ariaLabel=micText.textContent}
+ function setBusy(b){[mode,word,detail,hint].forEach(n=>n.disabled=b);listen.disabled=sample.disabled=b||!canSpeak();mic.disabled=!mediaAvailable;mic.classList.toggle('recording',b);micText.textContent=b?'Остановить запись':'Записать фразу';mic.ariaLabel=micText.textContent}
  function paint(resetDetail=true){
   const m=target();question.textContent=m.question;answer.textContent=m.answer;
   detailLabel.hidden=!(mode.value==='size'||mode.value==='color');
