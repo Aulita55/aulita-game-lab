@@ -178,7 +178,7 @@ const GAMES=[
  {key:"minimal",group:1,mark:"cap / cape",title:"Услышь разницу",desc:"Какое слово прозвучало",ok:t=>minimalPairs(t).length>=2&&canSpeak(),run:playMinimal},
  {key:"pairs",group:2,mark:"cat = ?",title:"Пары",desc:"Соедини слово и картинку",ok:t=>t.words.length>=3,run:(t,c)=>playPairs(t,c,t.words,6)},
  {key:"memory",group:2,mark:"? ?",title:"Память",desc:"Открывай и ищи пары",ok:t=>t.words.length>=3,run:playMemory},
- {key:"phrasepairs",group:2,mark:"A is for…",title:"Фразы и картинки",desc:"Соедини фразу с картинкой",ok:t=>t.sentences.length>=3,run:(t,c)=>playPairs(t,c,t.sentences,4)},
+ {key:"phrasepairs",group:2,mark:"I can…",title:"Фразы и картинки",desc:"Соедини фразу с картинкой",ok:t=>t.sentences.length>=3,run:(t,c)=>playPairs(t,c,t.sentences,4)},
  {key:"balloons",group:3,mark:"pop!",title:"Шарики",desc:"Лопни шарик с нужной картинкой",ok:t=>t.words.length>=3,run:playBalloons},
  {key:"race",group:3,mark:"go!",title:"Гонка",desc:"Обгони робота ответами",ok:t=>t.words.length>=3,run:playRace},
  {key:"truefalse",group:3,mark:"да / нет",title:"Верно или нет",desc:"Успей за 45 секунд",ok:t=>t.words.length>=3,run:playTrueFalse},
