@@ -127,58 +127,7 @@
      "🦓"
     ]
    ],
-   "sentences": [
-    [
-     "A is for apple.",
-     "A — как в слове apple (яблоко).",
-     "🍎"
-    ],
-    [
-     "B is for bear.",
-     "B — как в слове bear (медведь).",
-     "🐻"
-    ],
-    [
-     "C is for cat.",
-     "C — как в слове cat (кошка).",
-     "🐱"
-    ],
-    [
-     "D is for dog.",
-     "D — как в слове dog (собака).",
-     "🐶"
-    ],
-    [
-     "E is for elephant.",
-     "E — как в слове elephant (слон).",
-     "🐘"
-    ],
-    [
-     "K is for kangaroo.",
-     "K — как в слове kangaroo (кенгуру).",
-     "🦘"
-    ],
-    [
-     "L is for lion.",
-     "L — как в слове lion (лев).",
-     "🦁"
-    ],
-    [
-     "P is for penguin.",
-     "P — как в слове penguin (пингвин).",
-     "🐧"
-    ],
-    [
-     "T is for tiger.",
-     "T — как в слове tiger (тигр).",
-     "🐯"
-    ],
-    [
-     "Z is for zebra.",
-     "Z — как в слове zebra (зебра).",
-     "🦓"
-    ]
-   ],
+   "sentences": [],
    "gaps": [
     [
      "___pple",
