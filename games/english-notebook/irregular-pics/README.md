@@ -20,7 +20,7 @@
 - `bite.jpg`: realistic square photo showing the action "bite" (bit, bitten), scene: Yesterday a dog bit my brother. People or animals clearly visible, no text.
 - `bleed.jpg`: realistic square photo showing the action "bleed" (bled, bled), scene: Yesterday his finger bled a little. People or animals clearly visible, no text.
 - `blow.jpg`: realistic square photo showing the action "blow" (blew, blown), scene: Last night the wind blew hard. People or animals clearly visible, no text.
-- `break.jpg`: realistic square photo showing the action "break" (broke, broken), scene: Yesterday Tom broke the window. People or animals clearly visible, no text.
+- `break.jpg`: realistic square photo showing the action "break" (broke, broken), scene: Yesterday Tom broke his leg. People or animals clearly visible, no text.
 - `breed.jpg`: realistic square photo showing the action "breed" (bred, bred), scene: Last year my uncle bred cows. People or animals clearly visible, no text.
 - `bring.jpg`: realistic square photo showing the action "bring" (brought, brought), scene: Yesterday she brought a present. People or animals clearly visible, no text.
 - `build.jpg`: realistic square photo showing the action "build" (built, built), scene: Last year they built a house. People or animals clearly visible, no text.
