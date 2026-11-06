@@ -156,24 +156,30 @@ const clean=s=>String(s).replace(/^(a|an|the|to)\s+/i,"").trim();
 const spellable=t=>t.words.filter(w=>/^[a-z'-]{2,14}$/i.test(clean(w[0])));
 const sentenceable=t=>t.sentences.filter(s=>s[0].trim().split(/\s+/).length>=2);
 
+const rd=t=>t.reading||[];
+const minimalPairs=t=>rd(t).filter(x=>x[2]==="closed").map(x=>{const o=rd(t).find(y=>y[0]===x[0]+"e"&&y[2]==="open");return o?[x,o]:null}).filter(Boolean);
+const SYLLABLE_RULE={closed:"Закрытый слог: после гласной стоит согласная, и гласная читается кратко.",open:"Открытый слог: слово кончается на гласную или немую e, и гласная читается как в алфавите."};
 const SCRAMBLE=/^[a-z]{3,9}$/i;
 const searchable=t=>t.words.filter(w=>SCRAMBLE.test(clean(w[0])));
 const gappable=t=>t.sentences.filter(x=>x[0].trim().split(/\s+/).length>=3);
-const GROUPS=["Учим","Сопоставляем","Играем со словами","Играем с фразами"];
+const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами"];
 const GAMES=[
  {key:"cards",group:0,mark:"Aa",title:"Карточки",desc:"Смотри, слушай, запоминай",ok:t=>t.words.length+t.sentences.length>0,run:playCards},
- {key:"pairs",group:1,mark:"a = я",title:"Пары",desc:"Соедини слово и перевод",ok:t=>t.words.length>=3,run:(t,c)=>playPairs(t,c,t.words,6)},
- {key:"memory",group:1,mark:"? ?",title:"Память",desc:"Открывай и ищи пары",ok:t=>t.words.length>=3,run:playMemory},
- {key:"phrasepairs",group:1,mark:"I am = я",title:"Фразы и перевод",desc:"Соедини фразу с переводом",ok:t=>t.sentences.length>=3,run:(t,c)=>playPairs(t,c,t.sentences,4)},
- {key:"balloons",group:2,mark:"pop!",title:"Шарики",desc:"Лопни шарик с переводом",ok:t=>t.words.length>=3,run:playBalloons},
- {key:"race",group:2,mark:"go!",title:"Гонка",desc:"Обгони робота ответами",ok:t=>t.words.length>=3,run:playRace},
- {key:"truefalse",group:2,mark:"да / нет",title:"Верно или нет",desc:"Успей за 45 секунд",ok:t=>t.words.length>=3,run:playTrueFalse},
- {key:"listen",group:2,mark:"((•))",title:"На слух",desc:"Услышь и найди слово",ok:t=>t.words.length>=4&&canSpeak(),run:playListen},
- {key:"letters",group:2,mark:"c_t",title:"Буквы",desc:"Собери слово по буквам",ok:t=>spellable(t).length>0,run:playLetters},
- {key:"search",group:2,mark:"q c a t",title:"Найди слова",desc:"Ищи слова в сетке букв",ok:t=>searchable(t).length>=3,run:playSearch},
- {key:"sentences",group:3,mark:"I like…",title:"Предложения",desc:"Расставь слова по порядку",ok:t=>sentenceable(t).length>0,run:playSentences},
- {key:"missing",group:3,mark:"I ___ you",title:"Пропавшее слово",desc:"Верни слово во фразу",ok:t=>gappable(t).length>=2,run:playMissing},
- {key:"gaps",group:3,mark:"___",title:"Пропуски",desc:"Выбери правильную форму",ok:t=>t.gaps.length>0,run:playGaps}
+ {key:"read",group:1,mark:"name",title:"Читаем слова",desc:"Прочитай и проверь себя",ok:t=>rd(t).length>0,run:playRead},
+ {key:"syllable",group:1,mark:"cat / name",title:"Какой слог?",desc:"Открытый или закрытый",ok:t=>rd(t).length>=2,run:playSyllable},
+ {key:"minimal",group:1,mark:"cap / cape",title:"Услышь разницу",desc:"Какое слово прозвучало",ok:t=>minimalPairs(t).length>=2&&canSpeak(),run:playMinimal},
+ {key:"pairs",group:2,mark:"a = я",title:"Пары",desc:"Соедини слово и перевод",ok:t=>t.words.length>=3,run:(t,c)=>playPairs(t,c,t.words,6)},
+ {key:"memory",group:2,mark:"? ?",title:"Память",desc:"Открывай и ищи пары",ok:t=>t.words.length>=3,run:playMemory},
+ {key:"phrasepairs",group:2,mark:"I am = я",title:"Фразы и перевод",desc:"Соедини фразу с переводом",ok:t=>t.sentences.length>=3,run:(t,c)=>playPairs(t,c,t.sentences,4)},
+ {key:"balloons",group:3,mark:"pop!",title:"Шарики",desc:"Лопни шарик с переводом",ok:t=>t.words.length>=3,run:playBalloons},
+ {key:"race",group:3,mark:"go!",title:"Гонка",desc:"Обгони робота ответами",ok:t=>t.words.length>=3,run:playRace},
+ {key:"truefalse",group:3,mark:"да / нет",title:"Верно или нет",desc:"Успей за 45 секунд",ok:t=>t.words.length>=3,run:playTrueFalse},
+ {key:"listen",group:3,mark:"((•))",title:"На слух",desc:"Услышь и найди слово",ok:t=>t.words.length>=4&&canSpeak(),run:playListen},
+ {key:"letters",group:3,mark:"c_t",title:"Буквы",desc:"Собери слово по буквам",ok:t=>spellable(t).length>0,run:playLetters},
+ {key:"search",group:3,mark:"q c a t",title:"Найди слова",desc:"Ищи слова в сетке букв",ok:t=>searchable(t).length>=3,run:playSearch},
+ {key:"sentences",group:4,mark:"I like…",title:"Предложения",desc:"Расставь слова по порядку",ok:t=>sentenceable(t).length>0,run:playSentences},
+ {key:"missing",group:4,mark:"I ___ you",title:"Пропавшее слово",desc:"Верни слово во фразу",ok:t=>gappable(t).length>=2,run:playMissing},
+ {key:"gaps",group:4,mark:"___",title:"Пропуски",desc:"Выбери правильную форму",ok:t=>t.gaps.length>0,run:playGaps}
 ];
 
 /* ---------- views ---------- */
@@ -223,7 +229,7 @@ function showResult(t,g,stars,line,stage){
 
 /* ---------- games ---------- */
 function playCards(t,c){
- const queue=shuffle([...t.words,...t.sentences]);const total=queue.length;let done=0,repeats=0;
+ const queue=shuffle([...t.words,...t.sentences]).slice(0,20);const total=queue.length;let done=0,repeats=0;
  function next(){
   if(!c.alive())return;
   if(!queue.length){c.finish(3,"Всё пройдено. Теперь попробуй другие игры.");return}
@@ -311,6 +317,42 @@ function playGaps(t,c){
  next();
 }
 
+function playRead(t,c){
+ const rounds=shuffle(rd(t)).slice(0,10);let i=0,again=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(again<=1?3:again<=4?2:1,"Прочитано слов: "+rounds.length+", на повтор: "+again);return}
+  const w=rounds[i];
+  const answer=el("div",{class:"stack",hidden:true,style:"align-items:center;text-align:center"},el("span",{class:"tf-tr"},w[1]),el("span",{class:"muted small"},w[2]==="open"?"Открытый слог":"Закрытый слог"),el("div",{class:"row",style:"justify-content:center"},el("button",{type:"button",textContent:"Ещё потренируюсь",on:{click:()=>{again++;rounds.push(rounds.splice(i,1)[0]);next()}}}),el("button",{class:"main",type:"button",textContent:"Прочитал(а) верно",on:{click:()=>{tone(true);i++;c.progress(i,rounds.length);next()}}})));
+  const check=el("button",{class:"main",type:"button",textContent:canSpeak()?"Послушать и проверить":"Проверить",on:{click:()=>{speak(w[0]);answer.hidden=false;check.textContent="Послушать ещё раз"}}});
+  c.stage.replaceChildren(el("p",null,"Прочитай слово вслух, потом проверь себя."),el("div",{class:"prompt"},el("span",{class:"big"},w[0]),check,answer),el("p",{class:"muted small",style:"text-align:center"},"Слово "+(i+1)+" из "+rounds.length));
+ }
+ next();
+}
+function playSyllable(t,c){
+ const rounds=shuffle(rd(t)).slice(0,12);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const w=rounds[i];let over=false;const rule=el("p",{class:"small",style:"text-align:center;min-height:3em"});
+  const opt=(type,label)=>{const b=el("button",{class:"opt",type:"button",textContent:label,on:{click:()=>{if(over)return;over=true;speak(w[0]);rule.textContent=SYLLABLE_RULE[w[2]];if(type===w[2]){tone(true);b.classList.add("ok")}else{tone(false);mistakes++;b.classList.add("no");shake(b)}i++;c.progress(i,rounds.length);setTimeout(next,type===w[2]?1800:3200)}}});return b};
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("span",{class:"big"},w[0]),el("span",{class:"muted"},w[1])),el("div",{class:"opts"},opt("open","Открытый"),opt("closed","Закрытый")),rule);
+ }
+ next();
+}
+function playMinimal(t,c){
+ const rounds=shuffle(minimalPairs(t)).slice(0,8);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const pair=rounds[i],said=pair[Math.random()<.5?0:1];let over=false;
+  const note=el("span",{class:"muted"},"Какое слово ты слышишь?");
+  const opts=shuffle(pair).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o===said){over=true;tone(true);b.classList.add("ok");note.textContent=said[0]+": "+said[1];i++;c.progress(i,rounds.length);setTimeout(next,1500)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Пара "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("button",{class:"main",type:"button",textContent:"Послушать слово",on:{click:()=>speak(said[0])}}),note),el("div",{class:"opts"},opts));
+  speak(said[0]);
+ }
+ next();
+}
 function playMemory(t,c){
  const pick=shuffle(t.words).slice(0,6);let open=[],busy=false,misses=0,found=0;
  const tiles=shuffle(pick.flatMap((w,i)=>[{i,text:w[1]},{i,text:w[0],en:true}]));
@@ -421,6 +463,8 @@ function playMissing(t,c){
 /* ---------- teacher ---------- */
 function parsePairs(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const m=l.match(/^(.+?)(?:\s+[-–—=]\s+|\t+)(.+)$/);if(m)ok.push([m[1].trim(),m[2].trim()]);else bad.push(n+1)});return{ok,bad}}
 function parseGaps(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split("|").map(x=>x.trim());const q=(p[0]||"").replace(/_{2,}/g,"___");const wrong=(p[2]||"").split(",").map(x=>x.trim()).filter(Boolean);if(q.includes("___")&&p[1]&&wrong.length)ok.push([q,p[1],wrong]);else bad.push(n+1)});return{ok,bad}}
+function parseReading(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split(/\s+[-–—=]\s+|\t+/).map(x=>x.trim());const ty=(p[2]||"").toLowerCase();const type=ty.startsWith("откр")||ty==="open"?"open":ty.startsWith("закр")||ty==="closed"?"closed":"";if(p.length===3&&p[0]&&p[1]&&type)ok.push([p[0],p[1],type]);else bad.push(n+1)});return{ok,bad}}
+const readingText=a=>(a||[]).map(x=>x[0]+" - "+x[1]+" - "+(x[2]==="open"?"открытый":"закрытый")).join("\n");
 const pairsText=a=>a.map(x=>x[0]+" - "+x[1]).join("\n");
 const gapsText=a=>a.map(x=>x[0]+" | "+x[1]+" | "+x[2].join(", ")).join("\n");
 const newId=p=>p+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -493,15 +537,16 @@ async function fillThumbs(gen){
   try{const c=await up.book.draw(i,240);up.thumbs[i]=c.toDataURL("image/jpeg",.7);const im=document.getElementById("thumb-"+i);if(im)im.src=up.thumbs[i]}catch(e){}
  }
 }
-const uploadPrompt=topic=>'На фото страницы школьного учебника английского языка'+(topic?', тема «'+topic+'»':'')+'. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":""}],"sentences":[{"en":"","ru":""}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.';
+const uploadPrompt=topic=>'На фото страницы школьного учебника английского языка'+(topic?', тема «'+topic+'»':'')+'. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":""}],"sentences":[{"en":"","ru":""}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}],"reading":[{"word":"cat","ru":"кошка","type":"closed"}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. reading: если на странице есть правила чтения, короткие слова с открытым (type "open") или закрытым (type "closed") слогом; иначе пустой список. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.';
 function parseReply(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<=a)throw new Error("json");return JSON.parse(text.slice(a,b+1))}
 function applyReply(r){
  const pair=a=>Array.isArray(a)?a.filter(x=>x&&x.en&&x.ru).map(x=>[String(x.en).trim(),String(x.ru).trim()]):[];
  const gp=Array.isArray(r.gaps)?r.gaps.filter(x=>x&&x.q&&x.answer&&Array.isArray(x.wrong)&&x.wrong.length&&String(x.q).includes("___")).map(x=>[String(x.q).trim(),String(x.answer).trim(),x.wrong.map(String)]):[];
  const words=pair(r.words),sents=pair(r.sentences);
- if(!words.length&&!sents.length&&!gp.length)throw new Error("empty");
+ const rr=Array.isArray(r.reading)?r.reading.filter(x=>x&&x.word&&x.ru&&(x.type==="open"||x.type==="closed")).map(x=>[String(x.word).trim(),String(x.ru).trim(),x.type]):[];
+ if(!words.length&&!sents.length&&!gp.length&&!rr.length)throw new Error("empty");
  const title=up.book?up.book.title:"";const known=DATA.books.find(b=>b.title===title);
- editing={id:null,bookId:known?known.id:(title?"__new":(DATA.books[0]?DATA.books[0].id:"__new")),newBook:known?"":title,title:up.topic.trim()||String(r.title||""),words:pairsText(words),sentences:pairsText(sents),gaps:gapsText(gp)};
+ editing={id:null,bookId:known?known.id:(title?"__new":(DATA.books[0]?DATA.books[0].id:"__new")),newBook:known?"":title,title:up.topic.trim()||String(r.title||""),words:pairsText(words),sentences:pairsText(sents),gaps:gapsText(gp),reading:readingText(rr)};
  up.selected=new Set();up.status="";render();window.scrollTo(0,0);toast("Задания готовы. Проверьте их и сохраните тему.");
 }
 const pickedPages=()=>[...up.selected].sort((a,b)=>a-b);
@@ -572,15 +617,15 @@ function viewStudio(){
   el("div",null,el("button",{class:"ghost",type:"button",textContent:"Выйти на этом устройстве",on:{click:()=>{forgetToken();location.hash="";render()}}}))];
 }
 const clone=()=>JSON.parse(JSON.stringify(DATA));
-function blankTopic(){return{id:null,bookId:DATA.books[0]?DATA.books[0].id:"__new",title:"",words:"",sentences:"",gaps:""}}
+function blankTopic(){return{id:null,bookId:DATA.books[0]?DATA.books[0].id:"__new",title:"",words:"",sentences:"",gaps:"",reading:""}}
 function topicRow(t){
  const fb=el("input",{hidden:true,readOnly:true,id:"link-"+t.id});
  let armed=false;
  const del=el("button",{class:"ghost",type:"button",textContent:"Удалить",on:{click:()=>{if(!armed){armed=true;del.textContent="Точно удалить?";return}const d=clone();d.topics=d.topics.filter(x=>x.id!==t.id);d.books=d.books.filter(b=>d.topics.some(x=>x.bookId===b.id));save(d,"Тема удалена")}}});
- return el("div",{class:"list-row"},el("strong",null,t.title),el("span",{class:"hint"},"Слова: "+t.words.length+" · Предложения: "+t.sentences.length+" · Задания: "+t.gaps.length),
+ return el("div",{class:"list-row"},el("strong",null,t.title),el("span",{class:"hint"},"Слова: "+t.words.length+" · Предложения: "+t.sentences.length+" · Задания: "+t.gaps.length+" · Чтение: "+rd(t).length),
   el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Скопировать ссылку",on:{click:()=>{const u=pageUrl(t.id);copy("Игра по английскому, тема «"+t.title+"»: "+u,fb)}}}),
    el("button",{type:"button",textContent:"Открыть",on:{click:()=>{location.hash=t.id}}}),
-   el("button",{type:"button",textContent:"Изменить",on:{click:()=>{editing={id:t.id,bookId:t.bookId,title:t.title,words:pairsText(t.words),sentences:pairsText(t.sentences),gaps:gapsText(t.gaps)};render();window.scrollTo(0,0)}}}),del),fb);
+   el("button",{type:"button",textContent:"Изменить",on:{click:()=>{editing={id:t.id,bookId:t.bookId,title:t.title,words:pairsText(t.words),sentences:pairsText(t.sentences),gaps:gapsText(t.gaps),reading:readingText(t.reading)};render();window.scrollTo(0,0)}}}),del),fb);
 }
 function editor(){
  const e=editing;
@@ -593,20 +638,22 @@ function editor(){
  const words=ta("topic-words","words","cat - кошка\nto run - бегать");
  const sents=ta("topic-sentences","sentences","I have got a dog. - У меня есть собака.");
  const gaps=ta("topic-gaps","gaps","She ___ to school. | goes | go, going");
+ const reading=ta("topic-reading","reading","name - имя - открытый\ncat - кошка - закрытый");
  const errBox=el("p",{class:"err",hidden:true});
   const cancel=el("button",{class:"ghost",type:"button",textContent:"Отмена",on:{click:()=>{editing=null;render()}}});
  const saveBtn=el("button",{class:"main",type:"button",textContent:"Сохранить тему",on:{click:async()=>{
-  const w=parsePairs(e.words),s=parsePairs(e.sentences),g=parseGaps(e.gaps);const errs=[];
+  const w=parsePairs(e.words),s=parsePairs(e.sentences),g=parseGaps(e.gaps),rr=parseReading(e.reading||"");const errs=[];
   if(!e.title.trim())errs.push("Напишите название темы.");
   if(e.bookId==="__new"&&!(e.newBook||"").trim())errs.push("Напишите название учебника.");
   if(w.bad.length)errs.push("Слова: проверьте строки "+w.bad.join(", ")+". Нужен формат «cat - кошка».");
   if(s.bad.length)errs.push("Предложения: проверьте строки "+s.bad.join(", ")+".");
   if(g.bad.length)errs.push("Пропуски: проверьте строки "+g.bad.join(", ")+". Нужны ___, ответ и неверные варианты.");
-  if(!errs.length&&!w.ok.length&&!s.ok.length&&!g.ok.length)errs.push("Добавьте хотя бы одно слово или задание.");
+  if(rr.bad.length)errs.push("Чтение: проверьте строки "+rr.bad.join(", ")+". Нужен формат «cat - кошка - закрытый».");
+  if(!errs.length&&!w.ok.length&&!s.ok.length&&!g.ok.length&&!rr.ok.length)errs.push("Добавьте хотя бы одно слово или задание.");
   if(errs.length){errBox.textContent=errs.join(" ");errBox.hidden=false;return}
   const d=clone();let bookId=e.bookId;
   if(bookId==="__new"){bookId=newId("b");d.books.push({id:bookId,title:e.newBook.trim()})}
-  const item={id:e.id||newId("t"),bookId,title:e.title.trim(),words:w.ok,sentences:s.ok,gaps:g.ok};
+  const item={id:e.id||newId("t"),bookId,title:e.title.trim(),words:w.ok,sentences:s.ok,gaps:g.ok,reading:rr.ok};
   const at=d.topics.findIndex(x=>x.id===e.id);if(at>=0)d.topics[at]=item;else d.topics.push(item);
   d.books=d.books.filter(b=>d.topics.some(x=>x.bookId===b.id));
   saveBtn.disabled=true;saveBtn.textContent="Сохраняю…";
@@ -618,6 +665,7 @@ function editor(){
   el("label",{htmlFor:"topic-words"},el("span",null,"Слова и фразы ",el("span",{class:"hint"},"по одной на строку: слово - перевод")),words),
   el("label",{htmlFor:"topic-sentences"},el("span",null,"Предложения ",el("span",{class:"hint"},"предложение - перевод")),sents),
   el("label",{htmlFor:"topic-gaps"},el("span",null,"Грамматика с пропуском ",el("span",{class:"hint"},"задание | ответ | неверные варианты")),gaps),
+  el("label",{htmlFor:"topic-reading"},el("span",null,"Чтение и слоги ",el("span",{class:"hint"},"слово - перевод - открытый или закрытый")),reading),
   errBox,el("div",{class:"row"},saveBtn,cancel));
 }
 /* ---------- router ---------- */
