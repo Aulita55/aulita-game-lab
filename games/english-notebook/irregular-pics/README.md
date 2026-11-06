@@ -1,0 +1,141 @@
+# Фотографии к неправильным глаголам
+
+Файл называется первой формой глагола: `go.jpg`, `buy.jpg`. После загрузки в эту папку он сам появится в играх.
+Пока файла нет, показывается запасная картинка.
+
+Размер: квадрат 800×800, JPG, до 200 КБ.
+Используйте только изображения, которые вправе публиковать.
+
+Общее описание стиля: realistic photo, natural light, one clear action, friendly and safe for children aged 12, no text, no logos, no real famous people.
+
+- `arise.jpg`: realistic square photo showing the action "arise" (arose, arisen), scene: Last week a big problem arose. People or animals clearly visible, no text.
+- `awake.jpg`: realistic square photo showing the action "awake" (awoke, awoken), scene: Yesterday I awoke at six. People or animals clearly visible, no text.
+- `be.jpg`: realistic square photo showing the action "be" (was/were, been), scene: Yesterday she was at home. People or animals clearly visible, no text.
+- `bear.jpg`: realistic square photo showing the action "bear" (bore, borne), scene: Last year he bore the pain bravely. People or animals clearly visible, no text.
+- `beat.jpg`: realistic square photo showing the action "beat" (beat, beaten), scene: Last Sunday our team beat them. People or animals clearly visible, no text.
+- `become.jpg`: realistic square photo showing the action "become" (became, become), scene: Last year my aunt became a teacher. People or animals clearly visible, no text.
+- `begin.jpg`: realistic square photo showing the action "begin" (began, begun), scene: The lesson began an hour ago. People or animals clearly visible, no text.
+- `bend.jpg`: realistic square photo showing the action "bend" (bent, bent), scene: Yesterday he bent the metal wire. People or animals clearly visible, no text.
+- `bind.jpg`: realistic square photo showing the action "bind" (bound, bound), scene: Yesterday she bound the books with string. People or animals clearly visible, no text.
+- `bite.jpg`: realistic square photo showing the action "bite" (bit, bitten), scene: Yesterday a dog bit my brother. People or animals clearly visible, no text.
+- `bleed.jpg`: realistic square photo showing the action "bleed" (bled, bled), scene: Yesterday his finger bled a little. People or animals clearly visible, no text.
+- `blow.jpg`: realistic square photo showing the action "blow" (blew, blown), scene: Last night the wind blew hard. People or animals clearly visible, no text.
+- `break.jpg`: realistic square photo showing the action "break" (broke, broken), scene: Yesterday Tom broke the window. People or animals clearly visible, no text.
+- `breed.jpg`: realistic square photo showing the action "breed" (bred, bred), scene: Last year my uncle bred cows. People or animals clearly visible, no text.
+- `bring.jpg`: realistic square photo showing the action "bring" (brought, brought), scene: Yesterday she brought a present. People or animals clearly visible, no text.
+- `build.jpg`: realistic square photo showing the action "build" (built, built), scene: Last year they built a house. People or animals clearly visible, no text.
+- `burn.jpg`: realistic square photo showing the action "burn" (burnt/burned, burnt/burned), scene: Last night the fire burnt brightly. People or animals clearly visible, no text.
+- `buy.jpg`: realistic square photo showing the action "buy" (bought, bought), scene: Yesterday I bought new shoes. People or animals clearly visible, no text.
+- `catch.jpg`: realistic square photo showing the action "catch" (caught, caught), scene: Last Saturday he caught a big fish. People or animals clearly visible, no text.
+- `choose.jpg`: realistic square photo showing the action "choose" (chose, chosen), scene: Yesterday she chose a red dress. People or animals clearly visible, no text.
+- `come.jpg`: realistic square photo showing the action "come" (came, come), scene: Yesterday my friends came to my house. People or animals clearly visible, no text.
+- `cost.jpg`: realistic square photo showing the action "cost" (cost, cost), scene: Last year this phone cost a lot. People or animals clearly visible, no text.
+- `creep.jpg`: realistic square photo showing the action "creep" (crept, crept), scene: Last night the cat crept into the room. People or animals clearly visible, no text.
+- `cut.jpg`: realistic square photo showing the action "cut" (cut, cut), scene: Yesterday he cut the paper. People or animals clearly visible, no text.
+- `deal.jpg`: realistic square photo showing the action "deal" (dealt, dealt), scene: Last night she dealt the cards. People or animals clearly visible, no text.
+- `dig.jpg`: realistic square photo showing the action "dig" (dug, dug), scene: Yesterday the dog dug a hole. People or animals clearly visible, no text.
+- `do.jpg`: realistic square photo showing the action "do" (did, done), scene: Yesterday I did my homework. People or animals clearly visible, no text.
+- `draw.jpg`: realistic square photo showing the action "draw" (drew, drawn), scene: Yesterday she drew a horse. People or animals clearly visible, no text.
+- `dream.jpg`: realistic square photo showing the action "dream" (dreamt/dreamed, dreamt/dreamed), scene: Last night I dreamt about the sea. People or animals clearly visible, no text.
+- `drink.jpg`: realistic square photo showing the action "drink" (drank, drunk), scene: Yesterday the horse drank some water. People or animals clearly visible, no text.
+- `drive.jpg`: realistic square photo showing the action "drive" (drove, driven), scene: Last week my dad drove to Moscow. People or animals clearly visible, no text.
+- `eat.jpg`: realistic square photo showing the action "eat" (ate, eaten), scene: Last night we ate pizza. People or animals clearly visible, no text.
+- `fall.jpg`: realistic square photo showing the action "fall" (fell, fallen), scene: Yesterday my sister fell off her bike. People or animals clearly visible, no text.
+- `feed.jpg`: realistic square photo showing the action "feed" (fed, fed), scene: Yesterday I fed the rabbits. People or animals clearly visible, no text.
+- `feel.jpg`: realistic square photo showing the action "feel" (felt, felt), scene: Yesterday he felt very happy. People or animals clearly visible, no text.
+- `fight.jpg`: realistic square photo showing the action "fight" (fought, fought), scene: Last year the two boxers fought in Paris. People or animals clearly visible, no text.
+- `find.jpg`: realistic square photo showing the action "find" (found, found), scene: Yesterday I found my keys. People or animals clearly visible, no text.
+- `flee.jpg`: realistic square photo showing the action "flee" (fled, fled), scene: Last night the deer fled from the fire. People or animals clearly visible, no text.
+- `fly.jpg`: realistic square photo showing the action "fly" (flew, flown), scene: Last summer we flew to Spain. People or animals clearly visible, no text.
+- `forbid.jpg`: realistic square photo showing the action "forbid" (forbade, forbidden), scene: Last week my mum forbade computer games. People or animals clearly visible, no text.
+- `forget.jpg`: realistic square photo showing the action "forget" (forgot, forgotten), scene: Yesterday I forgot my bag. People or animals clearly visible, no text.
+- `forgive.jpg`: realistic square photo showing the action "forgive" (forgave, forgiven), scene: Last week she forgave her friend. People or animals clearly visible, no text.
+- `freeze.jpg`: realistic square photo showing the action "freeze" (froze, frozen), scene: Last winter the lake froze. People or animals clearly visible, no text.
+- `get.jpg`: realistic square photo showing the action "get" (got, got), scene: Yesterday I got a letter. People or animals clearly visible, no text.
+- `give.jpg`: realistic square photo showing the action "give" (gave, given), scene: Yesterday she gave me a book. People or animals clearly visible, no text.
+- `go.jpg`: realistic square photo showing the action "go" (went, gone), scene: Yesterday we went to the park. People or animals clearly visible, no text.
+- `grow.jpg`: realistic square photo showing the action "grow" (grew, grown), scene: Last year my brother grew very tall. People or animals clearly visible, no text.
+- `hang.jpg`: realistic square photo showing the action "hang" (hung, hung), scene: Yesterday she hung a picture on the wall. People or animals clearly visible, no text.
+- `have.jpg`: realistic square photo showing the action "have" (had, had), scene: Last year we had a dog. People or animals clearly visible, no text.
+- `hear.jpg`: realistic square photo showing the action "hear" (heard, heard), scene: Last night I heard a strange noise. People or animals clearly visible, no text.
+- `hide.jpg`: realistic square photo showing the action "hide" (hid, hidden), scene: Yesterday the children hid behind the tree. People or animals clearly visible, no text.
+- `hit.jpg`: realistic square photo showing the action "hit" (hit, hit), scene: Yesterday he hit the ball. People or animals clearly visible, no text.
+- `hold.jpg`: realistic square photo showing the action "hold" (held, held), scene: Yesterday she held the baby. People or animals clearly visible, no text.
+- `hurt.jpg`: realistic square photo showing the action "hurt" (hurt, hurt), scene: Yesterday I hurt my leg. People or animals clearly visible, no text.
+- `keep.jpg`: realistic square photo showing the action "keep" (kept, kept), scene: Last year he kept his money in a box. People or animals clearly visible, no text.
+- `kneel.jpg`: realistic square photo showing the action "kneel" (knelt/kneeled, knelt/kneeled), scene: Yesterday he knelt next to his dog. People or animals clearly visible, no text.
+- `know.jpg`: realistic square photo showing the action "know" (knew, known), scene: Yesterday she knew the answer. People or animals clearly visible, no text.
+- `lay.jpg`: realistic square photo showing the action "lay" (laid, laid), scene: Yesterday the hen laid an egg. People or animals clearly visible, no text.
+- `lead.jpg`: realistic square photo showing the action "lead" (led, led), scene: Yesterday our guide led us to the lake. People or animals clearly visible, no text.
+- `lean.jpg`: realistic square photo showing the action "lean" (leant/leaned, leant/leaned), scene: Yesterday he leant against the wall. People or animals clearly visible, no text.
+- `learn.jpg`: realistic square photo showing the action "learn" (learnt/learned, learnt/learned), scene: Last week I learnt ten new words. People or animals clearly visible, no text.
+- `leave.jpg`: realistic square photo showing the action "leave" (left, left), scene: Yesterday he left home at eight. People or animals clearly visible, no text.
+- `lend.jpg`: realistic square photo showing the action "lend" (lent, lent), scene: Yesterday I lent my friend a pen. People or animals clearly visible, no text.
+- `let.jpg`: realistic square photo showing the action "let" (let, let), scene: Yesterday my mum let me stay up late. People or animals clearly visible, no text.
+- `lie.jpg`: realistic square photo showing the action "lie" (lay, lain), scene: Yesterday the cat lay on the sofa. People or animals clearly visible, no text.
+- `light.jpg`: realistic square photo showing the action "light" (lit/lighted, lit/lighted), scene: Last night she lit a candle. People or animals clearly visible, no text.
+- `lose.jpg`: realistic square photo showing the action "lose" (lost, lost), scene: Yesterday I lost my phone. People or animals clearly visible, no text.
+- `make.jpg`: realistic square photo showing the action "make" (made, made), scene: Yesterday she made a cake. People or animals clearly visible, no text.
+- `mean.jpg`: realistic square photo showing the action "mean" (meant, meant), scene: Yesterday he meant something different. People or animals clearly visible, no text.
+- `meet.jpg`: realistic square photo showing the action "meet" (met, met), scene: Yesterday I met my friend in the park. People or animals clearly visible, no text.
+- `overcome.jpg`: realistic square photo showing the action "overcome" (overcame, overcome), scene: Last year she overcame her fear. People or animals clearly visible, no text.
+- `pay.jpg`: realistic square photo showing the action "pay" (paid, paid), scene: Yesterday my dad paid for lunch. People or animals clearly visible, no text.
+- `put.jpg`: realistic square photo showing the action "put" (put, put), scene: Yesterday I put the box on the table. People or animals clearly visible, no text.
+- `quit.jpg`: realistic square photo showing the action "quit" (quit, quit), scene: Last year my uncle quit his job. People or animals clearly visible, no text.
+- `read.jpg`: realistic square photo showing the action "read" (read, read), scene: Last night I read a good book. People or animals clearly visible, no text.
+- `ride.jpg`: realistic square photo showing the action "ride" (rode, ridden), scene: Last summer she rode a horse. People or animals clearly visible, no text.
+- `ring.jpg`: realistic square photo showing the action "ring" (rang, rung), scene: Yesterday the bell rang at nine. People or animals clearly visible, no text.
+- `rise.jpg`: realistic square photo showing the action "rise" (rose, risen), scene: This morning the sun rose at six. People or animals clearly visible, no text.
+- `run.jpg`: realistic square photo showing the action "run" (ran, run), scene: Yesterday I ran in the park. People or animals clearly visible, no text.
+- `say.jpg`: realistic square photo showing the action "say" (said, said), scene: Yesterday she said hello to me. People or animals clearly visible, no text.
+- `see.jpg`: realistic square photo showing the action "see" (saw, seen), scene: Yesterday we saw a lion at the zoo. People or animals clearly visible, no text.
+- `seek.jpg`: realistic square photo showing the action "seek" (sought, sought), scene: Last year they sought a new home. People or animals clearly visible, no text.
+- `sell.jpg`: realistic square photo showing the action "sell" (sold, sold), scene: Last week he sold his old bike. People or animals clearly visible, no text.
+- `send.jpg`: realistic square photo showing the action "send" (sent, sent), scene: Yesterday I sent a message. People or animals clearly visible, no text.
+- `set.jpg`: realistic square photo showing the action "set" (set, set), scene: Last night I set my alarm clock. People or animals clearly visible, no text.
+- `sew.jpg`: realistic square photo showing the action "sew" (sewed, sewn/sewed), scene: Last week she sewed a dress. People or animals clearly visible, no text.
+- `shake.jpg`: realistic square photo showing the action "shake" (shook, shaken), scene: Yesterday he shook the bottle. People or animals clearly visible, no text.
+- `shine.jpg`: realistic square photo showing the action "shine" (shone, shone), scene: Yesterday the sun shone all day. People or animals clearly visible, no text.
+- `shoot.jpg`: realistic square photo showing the action "shoot" (shot, shot), scene: Last Sunday he shot the ball into the goal. People or animals clearly visible, no text.
+- `show.jpg`: realistic square photo showing the action "show" (showed, shown/showed), scene: Yesterday she showed me her photos. People or animals clearly visible, no text.
+- `shrink.jpg`: realistic square photo showing the action "shrink" (shrank, shrunk), scene: Last week my T-shirt shrank in the wash. People or animals clearly visible, no text.
+- `shut.jpg`: realistic square photo showing the action "shut" (shut, shut), scene: Last night he shut the door. People or animals clearly visible, no text.
+- `sing.jpg`: realistic square photo showing the action "sing" (sang, sung), scene: Yesterday we sang a song. People or animals clearly visible, no text.
+- `sink.jpg`: realistic square photo showing the action "sink" (sank, sunk), scene: Last year an old ship sank near here. People or animals clearly visible, no text.
+- `sit.jpg`: realistic square photo showing the action "sit" (sat, sat), scene: Yesterday I sat next to Anna. People or animals clearly visible, no text.
+- `sleep.jpg`: realistic square photo showing the action "sleep" (slept, slept), scene: Last night the baby slept well. People or animals clearly visible, no text.
+- `slide.jpg`: realistic square photo showing the action "slide" (slid, slid), scene: Yesterday the children slid down the hill. People or animals clearly visible, no text.
+- `smell.jpg`: realistic square photo showing the action "smell" (smelt/smelled, smelt/smelled), scene: Yesterday the flowers smelt lovely. People or animals clearly visible, no text.
+- `speak.jpg`: realistic square photo showing the action "speak" (spoke, spoken), scene: Yesterday I spoke to my teacher. People or animals clearly visible, no text.
+- `spell.jpg`: realistic square photo showing the action "spell" (spelt/spelled, spelt/spelled), scene: Yesterday he spelt the word correctly. People or animals clearly visible, no text.
+- `spend.jpg`: realistic square photo showing the action "spend" (spent, spent), scene: Last summer we spent a week by the sea. People or animals clearly visible, no text.
+- `spill.jpg`: realistic square photo showing the action "spill" (spilt/spilled, spilt/spilled), scene: Yesterday I spilt my juice. People or animals clearly visible, no text.
+- `spit.jpg`: realistic square photo showing the action "spit" (spat, spat), scene: Yesterday the llama spat at the man. People or animals clearly visible, no text.
+- `split.jpg`: realistic square photo showing the action "split" (split, split), scene: Yesterday he split the wood. People or animals clearly visible, no text.
+- `spoil.jpg`: realistic square photo showing the action "spoil" (spoilt/spoiled, spoilt/spoiled), scene: Last week the rain spoilt our picnic. People or animals clearly visible, no text.
+- `spread.jpg`: realistic square photo showing the action "spread" (spread, spread), scene: This morning I spread butter on the bread. People or animals clearly visible, no text.
+- `spring.jpg`: realistic square photo showing the action "spring" (sprang, sprung), scene: Yesterday the frog sprang into the water. People or animals clearly visible, no text.
+- `stand.jpg`: realistic square photo showing the action "stand" (stood, stood), scene: Yesterday we stood in a long line. People or animals clearly visible, no text.
+- `steal.jpg`: realistic square photo showing the action "steal" (stole, stolen), scene: Last night a raccoon stole our food. People or animals clearly visible, no text.
+- `stick.jpg`: realistic square photo showing the action "stick" (stuck, stuck), scene: Yesterday she stuck a photo in her book. People or animals clearly visible, no text.
+- `sting.jpg`: realistic square photo showing the action "sting" (stung, stung), scene: Yesterday a bee stung my hand. People or animals clearly visible, no text.
+- `stink.jpg`: realistic square photo showing the action "stink" (stank, stunk), scene: Last week the old fish stank. People or animals clearly visible, no text.
+- `strike.jpg`: realistic square photo showing the action "strike" (struck, struck), scene: Last night lightning struck a tree. People or animals clearly visible, no text.
+- `swear.jpg`: realistic square photo showing the action "swear" (swore, sworn), scene: Yesterday he swore to tell the truth. People or animals clearly visible, no text.
+- `sweep.jpg`: realistic square photo showing the action "sweep" (swept, swept), scene: Yesterday I swept the floor. People or animals clearly visible, no text.
+- `swim.jpg`: realistic square photo showing the action "swim" (swam, swum), scene: Last summer we swam in the sea. People or animals clearly visible, no text.
+- `swing.jpg`: realistic square photo showing the action "swing" (swung, swung), scene: Yesterday the monkey swung from tree to tree. People or animals clearly visible, no text.
+- `take.jpg`: realistic square photo showing the action "take" (took, taken), scene: Yesterday I took a photo. People or animals clearly visible, no text.
+- `teach.jpg`: realistic square photo showing the action "teach" (taught, taught), scene: Last year she taught English. People or animals clearly visible, no text.
+- `tear.jpg`: realistic square photo showing the action "tear" (tore, torn), scene: Yesterday he tore the paper. People or animals clearly visible, no text.
+- `tell.jpg`: realistic square photo showing the action "tell" (told, told), scene: Last night my grandma told us a story. People or animals clearly visible, no text.
+- `think.jpg`: realistic square photo showing the action "think" (thought, thought), scene: Yesterday I thought about my holiday. People or animals clearly visible, no text.
+- `throw.jpg`: realistic square photo showing the action "throw" (threw, thrown), scene: Yesterday she threw the ball to me. People or animals clearly visible, no text.
+- `understand.jpg`: realistic square photo showing the action "understand" (understood, understood), scene: Yesterday I understood the new rule. People or animals clearly visible, no text.
+- `wake.jpg`: realistic square photo showing the action "wake" (woke, woken), scene: This morning I woke at seven. People or animals clearly visible, no text.
+- `wear.jpg`: realistic square photo showing the action "wear" (wore, worn), scene: Yesterday he wore a blue coat. People or animals clearly visible, no text.
+- `weave.jpg`: realistic square photo showing the action "weave" (wove, woven), scene: Last winter my grandma wove a carpet. People or animals clearly visible, no text.
+- `weep.jpg`: realistic square photo showing the action "weep" (wept, wept), scene: Yesterday the little girl wept. People or animals clearly visible, no text.
+- `win.jpg`: realistic square photo showing the action "win" (won, won), scene: Last Sunday our team won the game. People or animals clearly visible, no text.
+- `wind.jpg`: realistic square photo showing the action "wind" (wound, wound), scene: Yesterday she wound the wool into a ball. People or animals clearly visible, no text.
+- `write.jpg`: realistic square photo showing the action "write" (wrote, written), scene: Yesterday I wrote a letter. People or animals clearly visible, no text.

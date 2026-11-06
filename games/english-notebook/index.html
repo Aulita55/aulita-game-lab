@@ -127,6 +127,8 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.car{transition:none}}
 @media (max-width:370px){.games{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.shake{animation:none}.bar i{transition:none}}
+.opt.line{width:100%;text-align:left;padding:14px;font-size:18px}
+.pic.photo{object-fit:cover;border-radius:10px}
 </style>
 <link rel="stylesheet" href="aulita.css?v=20261106-3">
 </head>
@@ -157,7 +159,11 @@ function speakRu(t){if(!canSpeak())return;try{speechSynthesis.cancel();const u=n
 const ALPHABET_ART='pics/alphabet-3d.webp';
 const ART_BY_WORD={"apple": 0, "яблоко": 0, "bear": 1, "медведь": 1, "cat": 2, "кошка": 2, "dog": 3, "собака": 3, "elephant": 4, "слон": 4, "flower": 5, "цветок": 5, "goat": 6, "коза": 6, "hippo": 7, "бегемот": 7, "insect": 8, "насекомое": 8, "jelly": 9, "желе": 9, "kangaroo": 10, "кенгуру": 10, "lion": 11, "лев": 11, "monkey": 12, "обезьяна": 12, "nest": 13, "гнездо": 13, "octopus": 14, "осьминог": 14, "penguin": 15, "пингвин": 15, "queen": 16, "королева": 16, "rabbit": 17, "кролик": 17, "snake": 18, "змея": 18, "tiger": 19, "тигр": 19, "umbrella": 20, "зонт": 20, "vulture": 21, "стервятник": 21, "whale": 22, "кит": 22, "fox": 23, "лиса": 23, "yo-yo": 24, "йо-йо": 24, "zebra": 25, "зебра": 25};
 const ART_BY_SYMBOL={"🍎": 0, "🐻": 1, "🐱": 2, "🐶": 3, "🐘": 4, "🌼": 5, "🐐": 6, "🦛": 7, "🐞": 8, "🍮": 9, "🦘": 10, "🦁": 11, "🐒": 12, "🪺": 13, "🐙": 14, "🐧": 15, "👑": 16, "🐰": 17, "🐍": 18, "🐯": 19, "☂️": 20, "🦅": 21, "🐳": 22, "🦊": 23, "🪀": 24, "🦓": 25};
+const PHOTO_FAILED=new Set();let photoSource=null,photoMap={};
+function photoBase(alt){if(photoSource!==DATA){photoSource=DATA;photoMap={};DATA.topics.forEach(t=>(t.verbs||[]).forEach(v=>{photoMap[v[3]]=v[0]}))}return photoMap[alt]}
 function picEl(em,alt){
+ const base=photoBase(alt);
+ if(base&&!PHOTO_FAILED.has(base)){const ph=el("img",{class:"pic photo",alt:alt||"",src:"irregular-pics/"+base+".jpg",draggable:false});ph.onerror=()=>{PHOTO_FAILED.add(base);ph.replaceWith(picEl(em,alt))};return ph}
  const custom=window.NotebookArt&&NotebookArt.element(alt,em,el);if(custom)return custom;
  const index=ART_BY_WORD[String(alt||'').toLowerCase()]??ART_BY_SYMBOL[em];
  if(index!==undefined){
@@ -181,16 +187,16 @@ function pageUrl(hash){return location.origin+location.pathname+(hash?"#"+hash:"
 const topicById=id=>DATA.topics.find(t=>t.id===id);
 const bookById=id=>DATA.books.find(b=>b.id===id);
 const clean=s=>String(s).replace(/^(a|an|the|to)\s+/i,"").trim();
-const spellable=t=>t.words.filter(w=>/^[a-z'-]{2,14}$/i.test(clean(w[0])));
+const spellable=t=>[...t.words,...(t.spell||[])].filter(w=>/^[a-z'-]{2,14}$/i.test(clean(w[0])));
 const sentenceable=t=>t.sentences.filter(s=>s[0].trim().split(/\s+/).length>=2);
 
 const rd=t=>t.reading||[];
 const minimalPairs=t=>rd(t).filter(x=>x[2]==="closed").map(x=>{const o=rd(t).find(y=>y[0]===x[0]+"e"&&y[2]==="open");return o?[x,o]:null}).filter(Boolean);
 const SYLLABLE_RULE={closed:"Закрытый слог: после гласной стоит согласная, и гласная читается кратко.",open:"Открытый слог: слово кончается на гласную или немую e, и гласная читается как в алфавите."};
 const SCRAMBLE=/^[a-z]{3,9}$/i;
-const searchable=t=>t.words.filter(w=>SCRAMBLE.test(clean(w[0])));
+const searchable=t=>[...t.words,...(t.spell||[])].filter(w=>SCRAMBLE.test(clean(w[0])));
 const gappable=t=>t.sentences.filter(x=>x[0].trim().split(/\s+/).length>=3);
-const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры"];
+const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры","Правила и грамматика","Формы глагола"];
 const GAMES=[
  ...[ ["adventure","1→24","Ходилка с кубиком","Задания, бонусы и ловушки"], ["tictactoe","X / O","Крестики-нолики","Выполни задание и поставь фишку"], ["maze","Путь","Лабиринт","Найди животных и открой выход"] ].map(([key,mark,title,desc])=>({key,mark,title,desc,group:5,ok:t=>t.id==="fh2-g1-animals"&&!!window.NotebookMiniGames,run:(t,c)=>NotebookMiniGames.play(key,t,c,{el,speak,canSpeak,picEl,tone,shuffle})})),
  {key:"speaking",group:0,mark:"Say",title:"Говорим",desc:"Выбери ответ, запиши и проверь фразу",ok:t=>!!window.NotebookSpeech&&NotebookSpeech.supportsTopic(t),run:(t,c)=>NotebookSpeech.play(t,c,{el,speak,canSpeak,picEl,tone},{onAttempt:r=>window.NotebookMiniGames&&NotebookMiniGames.recordEvidence(t.id,0,2,r.ok,r.assisted)})},
@@ -209,7 +215,14 @@ const GAMES=[
  {key:"search",group:3,mark:"q c a t",title:"Найди слова",desc:"Ищи слова в сетке букв",ok:t=>searchable(t).length>=3,run:playSearch},
  {key:"sentences",group:4,mark:"I like…",title:"Предложения",desc:"Расставь слова по порядку",ok:t=>sentenceable(t).length>0,run:playSentences},
  {key:"missing",group:4,mark:"I ___ you",title:"Пропавшее слово",desc:"Верни слово во фразу",ok:t=>gappable(t).length>=2,run:playMissing},
- {key:"gaps",group:4,mark:"___",title:"Пропуски",desc:"Выбери правильную форму",ok:t=>t.gaps.length>0,run:playGaps}
+ {key:"gaps",group:4,mark:"___",title:"Пропуски",desc:"Выбери правильную форму",ok:t=>t.gaps.length>0,run:playGaps},
+ {key:"choice",group:6,mark:"✓ ✗",title:"Найди верное",desc:"Выбери правильное предложение",ok:t=>(t.choice||[]).length>0,run:playChoice},
+ {key:"sort",group:6,mark:"a | b",title:"Распредели",desc:"Отправь каждое слово в свою группу",ok:t=>!!(t.sort&&t.sort.items.length>=2),run:playSort},
+ {key:"qa",group:6,mark:"? !",title:"Подбери пару",desc:"Соедини начало и продолжение",ok:t=>(t.qa||[]).length>=3,run:(t,c)=>{const seen=new Set();const src=shuffle(t.qa).filter(x=>{if(seen.has(x[1]))return false;seen.add(x[1]);return true});playPairs(t,c,src,5)}},
+ {key:"ladder",group:6,mark:"100% → 0%",title:"Лесенка",desc:"Расставь по порядку",ok:t=>!!t.ladder,run:playLadder},
+ {key:"forms",group:7,mark:"go went gone",title:"Три формы",desc:"Собери все формы глагола",ok:t=>(t.verbs||[]).length>0,run:playForms},
+ {key:"typeform",group:7,mark:"go → ?",title:"Напиши форму",desc:"Введи нужную форму глагола",ok:t=>(t.verbs||[]).length>0,run:playTypeForm},
+ {key:"formcheck",group:7,mark:"да / нет",title:"Формы: верно или нет",desc:"Найди ошибку в формах",ok:t=>(t.verbs||[]).length>0,run:playFormCheck}
 ];
 
 /* ---------- views ---------- */
@@ -227,20 +240,20 @@ function alphabetBoard(t){
 }
 function welcome(){return el('div',{class:'notebook-mascot'},el('img',{class:'teacher-cat',src:'../../assets/oscar-3d-teacher.png',alt:'Оскар, кот-учитель АюлитА',width:96,height:112}));}
 
-function viewHome(){
- let cur=store.get("ee-book");if(!bookById(cur))cur=bookById("b-fly-high-2-group-1")?"b-fly-high-2-group-1":DATA.books[0]?DATA.books[0].id:null;
+function viewHome(only){
+ let cur=only||store.get("ee-book");if(!bookById(cur))cur=bookById("b-fly-high-2-group-1")?"b-fly-high-2-group-1":DATA.books[0]?DATA.books[0].id:null;
  const list=el("div",{class:"stack"});
  const chips=el("div",{class:"chips"});
  const alphabet=el("div",{class:"alphabet-area"});
  function paint(){const t=DATA.topics.find(t=>t.id==="fh2-g1-alphabet"&&t.bookId===cur);alphabet.replaceChildren(...(t?[alphabetBoard(t)]:[]));chips.replaceChildren(...DATA.books.map(b=>el("button",{class:"chip",type:"button",textContent:b.title,ariaPressed:String(b.id===cur),on:{click:()=>{cur=b.id;store.set("ee-book",cur);paint()}}})));
   list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map(t=>{const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;return el("button",{class:"topic",type:"button",on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,t.title)),el("span",{class:"muted small"},got+" из "+total+" игр"))}))}
  paint();
- return [header(),welcome(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Твоя тетрадка"),chips,alphabet,el("h2",null,"Темы и игры"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}})),el("p",{class:"hint"},"")]
+ return [header(),welcome(),only?el("section",{class:"stack"},el("h2",null,bookById(only).title),alphabet,el("h2",null,"Темы и игры"),list):DATA.books.length?el("section",{class:"stack"},el("h2",null,"Твоя тетрадка"),chips,alphabet,el("h2",null,"Темы и игры"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}})),el("p",{class:"hint"},"")]
 }
 function viewTopic(t){
  const book=bookById(t.bookId);
  const games=GAMES.filter(g=>g.ok(t));
- return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=""}}})),
+ return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=t.bookId}}})),
   el("section",{class:"stack"},el("p",{class:"muted small"},book?book.title:""),el("h1",null,t.title),el("p",null,"Выбери игру. Начинать лучше с карточек.")),
   ...GROUPS.map((name,gi)=>{const list=games.filter(g=>g.group===gi);return list.length?el("section",{class:"stack"},el("h3",null,name),el("div",{class:"games"},list.map(g=>el("button",{class:"game",type:"button",on:{click:()=>startGame(t,g)}},el("span",{class:"mark"},g.mark),el("strong",null,g.title),el("small",null,g.desc),el("span",{class:"stars"},starsText(bestOf(t.id,g.key))))))):null}),
   window.NotebookMiniGames?NotebookMiniGames.summary(t.id,el):null,reportBox(t)]
@@ -301,7 +314,7 @@ function playPairs(t,c,source,size){
   if(ok){tone(true);left.b.classList.remove("on");left.b.classList.add("done");b.classList.add("done");left=null;matched++;c.progress(matched,pick.length);if(matched===pick.length)setTimeout(()=>c.finish(starsBy(mistakes,pick.length),"Ошибок: "+mistakes),450)}
   else{tone(false);mistakes++;shake(b);shake(left.b)}
  }
- c.stage.replaceChildren(el("p",null,"Нажми слева на слово, а справа на его картинку."),el("div",{class:"pairs",style:"--pair-rows:"+pick.length},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru",w[2])))));
+ c.stage.replaceChildren(el("p",null,(source===t.words?"Нажми слева на слово, а справа на его картинку.":"Нажми на левую карточку, потом на подходящую правую.")),el("div",{class:"pairs",style:"--pair-rows:"+pick.length},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru",w[2])))));
 }
 function playBalloons(t,c){
  const rounds=shuffle(t.words).slice(0,10);let i=0,lives=3,right=0;
@@ -398,6 +411,84 @@ function playMinimal(t,c){
   const opts=shuffle(pair).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o===said){over=true;tone(true);b.classList.add("ok");note.replaceChildren(said[0]+" ",show(said[1],said[3]));i++;c.progress(i,rounds.length);setTimeout(next,1500)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
   c.stage.replaceChildren(el("p",{class:"muted small"},"Пара "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("button",{class:"main",type:"button",textContent:"Послушать слово",on:{click:()=>speak(said[0])}}),note),el("div",{class:"opts"},opts));
   speak(said[0]);
+ }
+ next();
+}
+function verbSet(rows){
+ const reg=regularForm,uniq=(ok,list,valid)=>{const out=[];for(const x of list)if(x!==ok&&!out.includes(x)&&!String(ok).split("/").includes(x)&&!String(valid||"").split("/").includes(x))out.push(x);return out.slice(0,2)};
+ const r={words:[],verbs:[],sentences:[],gaps:[],choice:[],qa:[],sort:{ask:"На какой глагол похожи его формы?",groups:["cut – cut – cut","buy – bought – bought","come – came – come","другие"],items:[]}};
+ for(const [b,pa,pp,ru,em,en,enRu] of rows){const pv=pa.split("/")[0],re=new RegExp("\\b"+pv+"\\b");
+  r.verbs.push([b,pa,pp,ru,em]);r.words.push([b,ru,em]);r.sentences.push([en,enRu]);
+  r.gaps.push([b+" — ___ — "+pp,pa,uniq(pa,[reg(b),pp,b+"s"])],[b+" — "+pa+" — ___",pp,uniq(pp,[reg(b),pa,b+"s",b+"ing"])],[en.replace(re,"___"),pv,uniq(pv,[b,reg(b),b+"s"],pa)]);
+  r.choice.push([en,uniq(pv,[b,reg(b),b+"s"],pa).map(x=>en.replace(re,x))]);r.qa.push([b,pa]);r.sort.items.push([b,b===pa&&pa===pp?0:pa===pp?1:b===pp?2:3])}
+ return r;
+}
+function expandVerbs(data){const own=data.topics.filter(t=>t.derive==="verbs");data.topics.forEach(t=>{if(t.derive==="verbs")Object.assign(t,verbSet(t.rows));else if(t.derive==="all-verbs")Object.assign(t,verbSet(own.filter(x=>x.bookId===t.bookId).flatMap(x=>x.rows)))});return data}
+const DERIVED=["words","verbs","sentences","gaps","choice","qa","sort"];
+function compactData(data){return Object.assign({},data,{topics:data.topics.map(t=>{if(!t.derive)return t;const c=Object.assign({},t);DERIVED.forEach(k=>delete c[k]);Object.assign(c,{words:[],sentences:[],gaps:[]});return c})})}
+function playSort(t,c){
+ const rounds=shuffle(t.sort.items).slice(0,12);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const it=rounds[i];let over=false;
+  const opts=t.sort.groups.map((name,g)=>{const b=el("button",{class:"opt",type:"button",textContent:name,on:{click:()=>{if(over)return;if(g===it[1]){over=true;tone(true);b.classList.add("ok");speak(it[0]);i++;c.progress(i,rounds.length);setTimeout(next,900)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  c.stage.replaceChildren(el("p",null,t.sort.ask),el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("span",{class:"big"},it[0])),el("div",{class:"opts"},opts));
+ }
+ next();
+}
+function playChoice(t,c){
+ const rounds=shuffle(t.choice).slice(0,10);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const r=rounds[i];let over=false;
+  const opts=shuffle([r[0],...r[1]]).map(o=>{const b=el("button",{class:"opt line",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===r[0]){over=true;tone(true);b.classList.add("ok");speak(o);i++;c.progress(i,rounds.length);setTimeout(next,1400)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  c.stage.replaceChildren(el("p",null,"Какое предложение написано верно?"),el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"stack"},opts));
+ }
+ next();
+}
+function playLadder(t,c){assemble(c,[t.ladder.order,t.ladder.order.slice().reverse()],o=>({tokens:o,ask:o===t.ladder.order?t.ladder.ask:t.ladder.back,say:o.join(", "),audio:false}),"Нажимай по порядку")}
+const regularForm=b=>b==="be"?"beed":/e$/.test(b)?b+"d":/[^aeiou]y$/.test(b)?b.slice(0,-1)+"ied":b+"ed";
+const formsLine=v=>v[0]+" — "+v[1]+" — "+v[2];
+function playForms(t,c){
+ const rounds=shuffle(t.verbs).slice(0,8);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const v=rounds[i],need=[v[1],v[2]];let pos=0;
+  const valid=[...v[1].split("/"),...v[2].split("/")];const extra=[regularForm(v[0]),v[0]+"s",v[0]+"ing"].filter(x=>!valid.includes(x)).slice(0,2);
+  const slots=need.map(()=>el("span",{class:"slot"}," "));
+  const pool=el("div",{class:"pool"},shuffle([...need,...extra]).map(tok=>{const b=el("button",{type:"button",textContent:tok,on:{click:()=>{if(tok===need[pos]){slots[pos].textContent=tok;slots[pos].classList.add("got");pos++;b.style.visibility="hidden";if(pos===2){tone(true);speak(formsLine(v).replace(/—/g,","));i++;c.progress(i,rounds.length);setTimeout(next,1700)}}else{tone(false);mistakes++;shake(b)}}}});return b}));
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Выбери вторую, потом третью форму · "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),el("span",{class:"big"},v[0]),el("span",{class:"muted"},v[3])),el("div",{class:"slots"},el("span",{class:"slot got"},v[0]),slots),pool);
+ }
+ next();
+}
+function playTypeForm(t,c){
+ const rounds=shuffle(t.verbs).slice(0,8);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const v=rounds[i],which=i%2?2:1,answer=v[which];let done=false;
+  const input=el("input",{id:"form-answer",autocomplete:"off",autocapitalize:"none",spellcheck:false,placeholder:"Напиши форму"});
+  const note=el("p",{class:"small",role:"status",style:"text-align:center;min-height:1.6em"});
+  const btn=el("button",{class:"main",type:"submit",textContent:"Проверить"});
+  const form=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(done){i++;c.progress(i,rounds.length);next();return}const val=input.value.trim().toLowerCase();if(!val)return;const ok=answer.split("/").includes(val);tone(ok);done=true;input.disabled=true;speak(formsLine(v).replace(/—/g,","));if(!ok)mistakes++;note.textContent=(ok?"Верно: ":"Правильно: ")+formsLine(v);btn.textContent="Дальше →";btn.focus()}}},input,note,el("div",null,btn));
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),el("span",{class:"big"},v[0]),el("span",{class:"muted"},(which===1?"Вторая форма":"Третья форма")+" · "+v[3])),form);
+  input.focus();
+ }
+ next();
+}
+function playFormCheck(t,c){
+ const rounds=shuffle(t.verbs).slice(0,12);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const v=rounds[i],truth=Math.random()<.5;const shown=v.slice(0,3);if(!truth){const k=Math.random()<.5?1:2;shown[k]=[regularForm(v[0]),v[0]+"s",v[0]+"ing"].find(x=>!v[k].split("/").includes(x))}const same=shown[1]===v[1]&&shown[2]===v[2];const line=shown.join(" — ");let over=false;
+  const answer=(val,b)=>{if(over)return;over=true;const ok=val===same;tone(ok);if(!ok){mistakes++;shake(b)}note.textContent=ok?"Верно!":"Правильно: "+formsLine(v);b.classList.add(ok?"ok":"no");speak(formsLine(v).replace(/—/g,","));i++;c.progress(i,rounds.length);setTimeout(next,ok?1100:2600)};
+  const note=el("p",{class:"small",role:"status",style:"text-align:center;min-height:1.6em"});
+  const yes=el("button",{class:"opt",type:"button",textContent:"✓ Верно",on:{click:()=>answer(true,yes)}}),no=el("button",{class:"opt",type:"button",textContent:"✗ Ошибка",on:{click:()=>answer(false,no)}});
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),el("span",{class:"big",style:"font-size:clamp(22px,6.5vw,32px)"},line)),el("div",{class:"opts"},yes,no),note);
  }
  next();
 }
@@ -527,13 +618,13 @@ async function openStudio(t){
  catch(e){loginError="Нет связи с GitHub. Проверьте интернет и попробуйте снова.";return false}
  if(!r.ok){forgetToken();loginError=r.status===401?"GitHub не принял ключ. Проверьте, что он скопирован целиком и не истёк.":"У ключа нет доступа к репозиторию aulita-game-lab. Создайте ключ заново по шагам ниже.";return false}
  const f=await r.json();
- DATA=JSON.parse(fromBase64(f.content));fileSha=f.sha;loaded=true;loadFailed=false;token=t;teacherReady=true;loginError="";
+ DATA=expandVerbs(JSON.parse(fromBase64(f.content)));fileSha=f.sha;loaded=true;loadFailed=false;token=t;teacherReady=true;loginError="";
  store.set("ee-token",t);
  return true;
 }
 async function save(data,msg){
  let r;
- try{r=await fetch(API,{method:"PUT",headers:Object.assign(ghHeaders(token),{"Content-Type":"application/json"}),body:JSON.stringify({message:"Обновить темы по английскому",content:toBase64(JSON.stringify(data,null,1)+"\n"),sha:fileSha,branch:"main"})})}
+ try{r=await fetch(API,{method:"PUT",headers:Object.assign(ghHeaders(token),{"Content-Type":"application/json"}),body:JSON.stringify({message:"Обновить темы по английскому",content:toBase64(JSON.stringify(compactData(data),null,1)+"\n"),sha:fileSha,branch:"main"})})}
  catch(e){toast("Нет связи с GitHub. Тема не сохранена, попробуйте ещё раз.");return false}
  if(r.status===409||r.status===422){toast("Темы изменились на другом устройстве. Обновите страницу и повторите.");return false}
  if(r.status===401){forgetToken();loginError="Ключ больше не действует. Создайте новый.";render();return false}
@@ -661,7 +752,7 @@ function viewStudio(){
   el("section",{class:"stack"},el("h2",null,"Кабинет учителя"),el("p",{class:"muted"},"После сохранения новая тема появится у учеников через 1–2 минуты."),el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Загрузить учебник",on:{click:async()=>{up.open=!up.open;editing=null;await refreshSaved();render();if(up.book)fillThumbs(up.gen)}}}),el("button",{type:"button",textContent:"Добавить тему вручную",on:{click:()=>{editing=blankTopic();render()}}}))),
   editing?editor():null,
   up.open&&!editing?uploadPanel():null,
-  el("section",{class:"box"},el("h3",null,"Ваши темы"),DATA.topics.length?DATA.books.map(b=>el("div",{class:"stack"},el("p",{class:"muted small"},b.title),DATA.topics.filter(t=>t.bookId===b.id).map(topicRow))):el("p",{class:"muted"},"Тем пока нет.")),
+  el("section",{class:"box"},el("h3",null,"Ваши темы"),DATA.topics.length?DATA.books.map(b=>el("div",{class:"stack"},el("div",{class:"top"},el("p",{class:"muted small"},b.title),el("button",{type:"button",textContent:"Ссылка на весь учебник",on:{click:()=>copy("Игры по английскому, «"+b.title+"»: "+pageUrl(b.id))}})),DATA.topics.filter(t=>t.bookId===b.id).map(topicRow))):el("p",{class:"muted"},"Тем пока нет.")),
   el("section",{class:"box"},el("h3",null,"Общая ссылка"),el("p",{class:"small",style:"overflow-wrap:anywhere"},pageUrl("")),el("div",null,el("button",{type:"button",textContent:"Скопировать",on:{click:()=>copy(pageUrl(""))}}))),
   el("div",null,el("button",{class:"ghost",type:"button",textContent:"Выйти на этом устройстве",on:{click:()=>{forgetToken();location.hash="";render()}}}))];
 }
@@ -674,7 +765,7 @@ function topicRow(t){
  return el("div",{class:"list-row"},el("strong",null,t.title),el("span",{class:"hint"},"Слова: "+t.words.length+" · Предложения: "+t.sentences.length+" · Задания: "+t.gaps.length+" · Чтение: "+rd(t).length),
   el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Скопировать ссылку",on:{click:()=>{const u=pageUrl(t.id);copy("Игра по английскому, тема «"+t.title+"»: "+u,fb)}}}),
    el("button",{type:"button",textContent:"Открыть",on:{click:()=>{location.hash=t.id}}}),
-   el("button",{type:"button",textContent:"Изменить",on:{click:()=>{editing={id:t.id,bookId:t.bookId,title:t.title,words:pairsText(t.words),sentences:pairsText(t.sentences),gaps:gapsText(t.gaps),reading:readingText(t.reading)};render();window.scrollTo(0,0)}}}),del),fb);
+   t.derive?null:el("button",{type:"button",textContent:"Изменить",on:{click:()=>{editing={id:t.id,bookId:t.bookId,title:t.title,words:pairsText(t.words),sentences:pairsText(t.sentences),gaps:gapsText(t.gaps),reading:readingText(t.reading)};render();window.scrollTo(0,0)}}}),del),fb);
 }
 function editor(){
  const e=editing;
@@ -702,8 +793,9 @@ function editor(){
   if(errs.length){errBox.textContent=errs.join(" ");errBox.hidden=false;return}
   const d=clone();let bookId=e.bookId;
   if(bookId==="__new"){bookId=newId("b");d.books.push({id:bookId,title:e.newBook.trim()})}
-  const item={id:e.id||newId("t"),bookId,title:e.title.trim(),words:w.ok,sentences:s.ok,gaps:g.ok,reading:rr.ok};
-  const at=d.topics.findIndex(x=>x.id===e.id);if(at>=0)d.topics[at]=item;else d.topics.push(item);
+  const at=d.topics.findIndex(x=>x.id===e.id);
+  const item=Object.assign({},at>=0?d.topics[at]:{},{id:e.id||newId("t"),bookId,title:e.title.trim(),words:w.ok,sentences:s.ok,gaps:g.ok,reading:rr.ok});
+  if(at>=0)d.topics[at]=item;else d.topics.push(item);
   d.books=d.books.filter(b=>d.topics.some(x=>x.bookId===b.id));
   saveBtn.disabled=true;saveBtn.textContent="Сохраняю…";
   const ok=await save(d,"Тема сохранена. Скопируйте ссылку в списке ниже.");
@@ -724,12 +816,12 @@ function render(){
  let view;
  if(h==="studio")view=teacherReady?viewStudio():viewLogin();
  else if(!loaded)view=loadFailed?[header(),el("p",null,"Не удалось загрузить темы. Проверьте интернет."),el("div",null,el("button",{class:"main",type:"button",textContent:"Попробовать снова",on:{click:loadTopics}}))]:[header(),el("p",{class:"muted"},"Загружаю темы…")];
- else{const t=topicById(h);view=t?viewTopic(t):viewHome()}
+ else{const t=topicById(h);view=t?viewTopic(t):bookById(h)?viewHome(h):viewHome()}
  app.replaceChildren(el("main",{class:"wrap"},view));
 }
 async function loadTopics(){
  loadFailed=false;render();
- try{const r=await fetch("topics.json?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("load");if(!teacherReady){DATA=await r.json();loaded=true}}
+ try{const r=await fetch("topics.json?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("load");if(!teacherReady){DATA=expandVerbs(await r.json());loaded=true}}
  catch(e){if(!teacherReady)loadFailed=true}
  render();
 }
