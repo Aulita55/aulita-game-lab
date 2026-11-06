@@ -183,6 +183,7 @@ const GAMES=[
  {key:"race",group:3,mark:"go!",title:"Гонка",desc:"Обгони робота ответами",ok:t=>t.words.length>=3,run:playRace},
  {key:"truefalse",group:3,mark:"да / нет",title:"Верно или нет",desc:"Успей за 45 секунд",ok:t=>t.words.length>=3,run:playTrueFalse},
  {key:"listen",group:3,mark:"((•))",title:"На слух",desc:"Услышь и найди слово",ok:t=>t.words.length>=4&&canSpeak(),run:playListen},
+ {key:"speak",group:3,mark:"🎤",title:"Говори",desc:"Произнеси слово вслух",ok:t=>t.words.length>=3,run:playSpeak},
  {key:"letters",group:3,mark:"c_t",title:"Буквы",desc:"Собери слово по буквам",ok:t=>spellable(t).length>0,run:playLetters},
  {key:"search",group:3,mark:"q c a t",title:"Найди слова",desc:"Ищи слова в сетке букв",ok:t=>searchable(t).length>=3,run:playSearch},
  {key:"sentences",group:4,mark:"I like…",title:"Предложения",desc:"Расставь слова по порядку",ok:t=>sentenceable(t).length>0,run:playSentences},
@@ -192,16 +193,37 @@ const GAMES=[
 
 /* ---------- views ---------- */
 function header(){const b=[];if(token)b.push(el("button",{type:"button",textContent:location.hash==="#studio"?"Как видит ученик":"Кабинет учителя",on:{click:()=>{location.hash=location.hash==="#studio"?"":"studio"}}}));return el("header",{class:"top"},el("h1",null,"Английская тетрадка"),b)}
+function isCourse(t){return t.bookId==="b-fly-high-2-group-1"}
+function courseTopics(t){return DATA.topics.filter(x=>x.bookId===t.bookId)}
+function courseGames(t){return ["cards","pairs","listen","gaps","speak"].map(k=>GAMES.find(g=>g.key===k)).filter(g=>g&&g.ok(t))}
+function gameUnlocked(t,g){if(!isCourse(t)||teacherReady)return true;const gs=courseGames(t),i=gs.findIndex(x=>x.key===g.key);return i<=0||gs.slice(0,i).every(x=>bestOf(t.id,x.key)>=2)}
+function topicComplete(t){return courseGames(t).every(g=>bestOf(t.id,g.key)>=2)}
+function topicUnlocked(t){if(!isCourse(t)||teacherReady)return true;const arr=courseTopics(t),i=arr.findIndex(x=>x.id===t.id);return i<=0||arr.slice(0,i).every(topicComplete)}
+function errorKey(t){return "ee-errors:"+t.id}
+function logError(t,word){try{const arr=JSON.parse(store.get(errorKey(t))||"[]");arr.push({word:String(word),at:new Date().toISOString()});store.set(errorKey(t),JSON.stringify(arr.slice(-300)))}catch(e){}}
+function courseView(t){
+ const games=courseGames(t);
+ return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К темам",on:{click:()=>{location.hash=""}}})),
+ el("section",{class:"stack"},el("p",{class:"muted small"},"Fly High 2 · Группа 1"),el("h1",null,t.title),
+ el("p",{class:"hint"},"Проходи задания по порядку. Для открытия следующего уровня нужно набрать минимум 2 звезды в каждой игре. Результаты сохраняются на этом устройстве.")),
+ el("section",{class:"stack"},...games.map((g,i)=>{
+ const ok=gameUnlocked(t,g),done=bestOf(t.id,g.key)>=2;
+ return el("button",{class:"topic",type:"button",disabled:!ok,on:{click:()=>startGame(t,g)}},
+ el("span",null,el("b",null,(i+1)+". "+g.title),el("span",{class:"muted small",style:"display:block"},g.desc)),
+ el("span",{class:"stars",textContent:done?"✓":ok?"▶":"🔒"});
+ })),reportBox(t)]
+}
 function viewHome(){
  let cur=store.get("ee-book");if(!bookById(cur))cur=DATA.books[0]?DATA.books[0].id:null;
  const list=el("div",{class:"stack"});
  const chips=el("div",{class:"chips"});
  function paint(){chips.replaceChildren(...DATA.books.map(b=>el("button",{class:"chip",type:"button",textContent:b.title,ariaPressed:String(b.id===cur),on:{click:()=>{cur=b.id;store.set("ee-book",cur);paint()}}})));
-  list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map(t=>{const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;return el("button",{class:"topic",type:"button",on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,t.title)),el("span",{class:"muted small"},got+" из "+total+" игр"))}))}
+  list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map((t,i)=>{const total=isCourse(t)?courseGames(t).length:GAMES.filter(g=>g.ok(t)).length,got=isCourse(t)?courseGames(t).filter(g=>bestOf(t.id,g.key)>=2).length:GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length,ok=topicUnlocked(t);return el("button",{class:"topic",type:"button",disabled:!ok,on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,(isCourse(t)?(i+1)+". ":"")+t.title)),el("span",{class:"muted small"},ok?(got+" из "+total+" игр"):"🔒 Сначала пройди предыдущий уровень"))}))}
  paint();
  return [header(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Выбери учебник"),chips,el("h2",null,"Выбери тему"),list):el("p",{class:"muted"},"Учитель пока не добавил темы."),token?null:el("div",null,el("button",{class:"ghost",type:"button",textContent:"Вход для учителя",on:{click:()=>{location.hash="studio"}}})),el("p",{class:"hint"},"Картинки: Twemoji, CC BY 4.0")]
 }
 function viewTopic(t){
+ if(isCourse(t)){if(!topicUnlocked(t))return [header(),el("p",null,"🔒 Сначала пройди предыдущий уровень."),el("button",{type:"button",on:{click:()=>{location.hash=""}},textContent:"К уровням"})];return courseView(t)}
  const book=bookById(t.bookId);
  const games=GAMES.filter(g=>g.ok(t));
  return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=""}}})),
@@ -213,11 +235,12 @@ function reportBox(t){
  const nameI=el("input",{id:"kid-name",value:store.get("ee-name")||"",placeholder:"Например, Маша",autocomplete:"off",on:{input:e=>store.set("ee-name",e.target.value)}});
  const fallback=el("textarea",{id:"report-text",hidden:true,readOnly:true});
  return el("section",{class:"box"},el("h3",null,"Показать результат учителю"),el("label",{htmlFor:"kid-name"},"Твоё имя",nameI),
-  el("button",{type:"button",textContent:"Скопировать результат",on:{click:()=>{const played=GAMES.filter(g=>bestOf(t.id,g.key)>0).map(g=>g.title+" "+starsText(bestOf(t.id,g.key)));copy((nameI.value.trim()||"Ученик")+", тема «"+t.title+"»: "+(played.join(", ")||"пока не играл(а)"),fallback)}}}),fallback)
+  el("button",{type:"button",textContent:"Скопировать результат",on:{click:()=>{const played=GAMES.filter(g=>bestOf(t.id,g.key)>0).map(g=>g.title+" "+starsText(bestOf(t.id,g.key)));const errors=JSON.parse(store.get(errorKey(t))||"[]");const counts={};for(const e of errors)counts[e.word]=(counts[e.word]||0)+1;copy((nameI.value.trim()||"Ученик")+", тема «"+t.title+"»: "+(played.join(", ")||"пока не играл(а)")+". Ошибки: "+(Object.entries(counts).map(([w,n])=>w+" ("+n+")").join(", ")||"не зарегистрированы"),fallback)}}}),fallback)
 }
 
 /* ---------- game frame ---------- */
 function startGame(t,g){
+ if(!topicUnlocked(t)||!gameUnlocked(t,g)){toast("Сначала выполни предыдущие задания.");render();return}
  const my=++run;
  for(const em of new Set([...t.words,...t.sentences].map(x=>x[2]).concat(t.gaps.map(x=>x[3]),rd(t).map(x=>x[3])).filter(Boolean)))picEl(em,"");
  const stage=el("div",{class:"stack"});
@@ -233,7 +256,7 @@ function showResult(t,g,stars,line,stage){
  const s=el("div",{class:"bigstars",ariaLabel:"Звёзд: "+stars});s.append("★".repeat(stars));s.append(el("span",null,"★".repeat(3-stars)));
  tone(true);
  stage.replaceChildren(el("p",{class:"note"},words[stars]),s,el("p",{class:"muted",style:"text-align:center"},line),
-  el("div",{class:"row",style:"justify-content:center"},el("button",{class:"main",type:"button",textContent:"Играть ещё раз",on:{click:()=>startGame(t,g)}}),el("button",{type:"button",textContent:"Другая игра",on:{click:()=>{run++;render()}}})),reportBox(t));
+  el("div",{class:"row",style:"justify-content:center"},el("button",{class:"main",type:"button",textContent:"Играть ещё раз",on:{click:()=>startGame(t,g)}}),el("button",{type:"button",textContent:isCourse(t)?"К следующим заданиям":"Другая игра",on:{click:()=>{run++;render()}}})),reportBox(t));
 }
 
 /* ---------- games ---------- */
@@ -322,7 +345,7 @@ function playGaps(t,c){
   const gap=el("u",null,"     ");
   const q=el("p",{class:"gapq"},parts[0],gap,parts.slice(1).join("___"));
   let over=false;
-  const opts=shuffle([g[1],...g[2]]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===g[1]){over=true;tone(true);gap.textContent=o;b.classList.add("ok");speak(g[0].replace("___",o));i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  const opts=shuffle([g[1],...g[2]]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===g[1]){over=true;tone(true);gap.textContent=o;b.classList.add("ok");speak(g[0].replace("___",o));i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;logError(t,g[0].replace("___",g[1]));b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
   c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},g[3]?picEl(g[3],""):null,q,g[3]?sayBtn(g[0].replace("___",g[1])):null),el("div",{class:"opts"},opts));
  }
  next();
@@ -358,7 +381,7 @@ function playMinimal(t,c){
   if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
   const pair=rounds[i],said=pair[Math.random()<.5?0:1];let over=false;
   const note=el("span",{class:"muted"},"Какое слово ты слышишь?");
-  const opts=shuffle(pair).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o===said){over=true;tone(true);b.classList.add("ok");note.replaceChildren(said[0]+" ",show(said[1],said[3]));i++;c.progress(i,rounds.length);setTimeout(next,1500)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  const opts=shuffle(pair).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o[0],on:{click:()=>{if(over)return;if(o===said){over=true;tone(true);b.classList.add("ok");note.replaceChildren(said[0]+" ",show(said[1],said[3]));i++;c.progress(i,rounds.length);setTimeout(next,1500)}else{tone(false);mistakes++;logError(t,w[0]);b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
   c.stage.replaceChildren(el("p",{class:"muted small"},"Пара "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("button",{class:"main",type:"button",textContent:"Послушать слово",on:{click:()=>speak(said[0])}}),note),el("div",{class:"opts"},opts));
   speak(said[0]);
  }
@@ -400,6 +423,41 @@ function playListen(t,c){
   speak(w[0]);
  }
  next();
+}
+function playSpeak(t,c){
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const words=shuffle(t.words.filter(w=>/^[a-z][a-z '-]*$/i.test(w[0]))).slice(0,8);
+ let i=0,errors=0,recognition=null;
+ const normal=s=>String(s||"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\\s+/g," ").trim();
+ function next(){
+  if(!c.alive())return;
+  if(recognition){try{recognition.abort()}catch(e){}recognition=null}
+  if(i>=words.length){c.finish(starsBy(errors,words.length),"Слова произнесены: "+words.length+". Распознавание речи приблизительное.");return}
+  const w=words[i],status=el("p",{class:"hint",role:"status",textContent:Speech?"Послушай и повтори в микрофон.":"Распознавание речи здесь недоступно. Повтори вслух самостоятельно."});
+  const actions=el("div",{class:"row",style:"justify-content:center"});
+  actions.append(el("button",{type:"button",textContent:"🔊 Послушать",on:{click:()=>speak(w[0])}}));
+  if(Speech){
+   const b=el("button",{class:"main",type:"button",textContent:"🎤 Говорить",on:{click:()=>{
+    if(recognition)return;
+    const rec=new Speech();recognition=rec;rec.lang="en-GB";rec.interimResults=false;rec.maxAlternatives=3;b.disabled=true;status.textContent="Слушаю…";
+    rec.onresult=e=>{
+     if(!c.alive())return;
+     const heard=Array.from(e.results[0]||[]).map(a=>normal(a.transcript));
+     const correct=heard.some(v=>v===normal(w[0]));
+     if(correct){tone(true);status.textContent="Отлично! ✓";i++;c.progress(i,words.length);setTimeout(()=>{if(c.alive())next()},1100)}
+     else{errors++;logError(t,w[0]);tone(false);status.textContent="Я услышал(а): "+(heard[0]||"неразборчиво")+". Попробуй ещё раз."}
+    };
+    rec.onerror=e=>{if(c.alive())status.textContent=e.error==="not-allowed"?"Разреши доступ к микрофону или пропусти слово.":"Не удалось распознать. Повтори ещё раз."};
+    rec.onend=()=>{if(recognition===rec)recognition=null;if(c.alive())b.disabled=false};
+    try{rec.start()}catch(e){recognition=null;b.disabled=false;status.textContent="Микрофон недоступен."}
+   }});actions.append(b);
+  }
+  actions.append(el("button",{type:"button",textContent:"Повторил(а) — дальше",on:{click:()=>{i++;c.progress(i,words.length);next()}}}));
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+words.length),
+   el("div",{class:"prompt"},w[2]?picEl(w[2],w[1]):null,el("span",{class:"big",textContent:w[0]}),el("span",{class:"muted small",textContent:w[1]})),actions,status,
+   el("p",{class:"hint"},"Проверка микрофоном может ошибаться. Если микрофон недоступен, произнеси слово самостоятельно."));
+ }
+ if(words.length)next();else c.finish(1,"Нет слов для произношения.");
 }
 function buildSearch(words){
  const size=Math.max(8,Math.max(...words.map(w=>w.length))+1);
