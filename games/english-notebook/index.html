@@ -1,0 +1,410 @@
+<!doctype html><html lang="ru"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Английская тетрадка</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Neucha&family=Nunito:wght@500;700;800&display=swap">
+<style id="app-style">
+/* Layout: one column on squared school-notebook paper; the dark theme is a chalkboard. Teacher's red pen is the only loud voice. */
+:root{
+  --paper:#fbfdff;--grid:#d9e6f4;--ink:#1f3a8f;--text:#1b2748;--pen:#cf2b39;--muted:#56658a;
+  --tile:#ffffff;--edge:#1f3a8f;--good:#14804c;--good-bg:#def5e7;--bad-bg:#fde4e4;--sun:#ffd23f;--mint:#8fe3bd;--pink:#ffb3c4;--on-pop:#20200f;--field:#ffffff;
+  --display:"Neucha","Comic Sans MS",cursive;--body:"Nunito","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#14302a;--grid:#1d3f37;--ink:#f3f6e8;--text:#e9efe2;--pen:#ff9c8c;--muted:#a8c1b3;
+  --tile:#1c3f36;--edge:#cfe0d2;--good:#8fe6ae;--good-bg:#1f5140;--bad-bg:#5a2f2f;--sun:#ffd866;--mint:#9be8c6;--pink:#ffbccb;--on-pop:#20200f;--field:#102822;color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#14302a;--grid:#1d3f37;--ink:#f3f6e8;--text:#e9efe2;--pen:#ff9c8c;--muted:#a8c1b3;
+  --tile:#1c3f36;--edge:#cfe0d2;--good:#8fe6ae;--good-bg:#1f5140;--bad-bg:#5a2f2f;--sun:#ffd866;--mint:#9be8c6;--pink:#ffbccb;--on-pop:#20200f;--field:#102822;color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--text);font:500 17px/1.5 var(--body)}
+.wrap{max-width:680px;margin:0 auto;padding-block:16px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;color:var(--ink);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(34px,9vw,46px)}h2{font-size:30px}h3{font-size:24px}
+p{margin:0}.muted{color:var(--muted)}.small{font-size:15px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:12px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button,.btn{font:800 16px/1.2 var(--body);color:var(--ink);background:var(--tile);border:2px solid var(--edge);border-radius:12px;padding:11px 15px;box-shadow:0 3px 0 var(--edge);cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation}
+button:active{transform:translateY(3px);box-shadow:none}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+button.main{background:var(--sun);color:var(--on-pop)}
+button.ghost{border-color:transparent;box-shadow:none;background:transparent;padding:8px 4px;text-decoration:underline;text-underline-offset:3px}
+button.ghost:active{transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.topic{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;padding:14px 16px}
+.topic b{font:400 25px/1.15 var(--display)}
+.topic>span:first-child{min-width:0;overflow-wrap:anywhere}
+.stars{color:var(--pen);font-size:18px;letter-spacing:1px;white-space:nowrap;font-weight:800}
+.games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.game{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:14px;min-height:132px}
+.mark{font:400 22px/1 var(--display);background:var(--sun);color:var(--on-pop);padding:6px 9px;border-radius:7px;transform:rotate(-2deg)}
+.game:nth-child(3n+2) .mark{background:var(--mint)}.game:nth-child(3n) .mark{background:var(--pink)}
+.game strong{font:400 24px/1.1 var(--display)}
+.game small{font:500 14px/1.3 var(--body);color:var(--muted)}
+.bar{height:10px;border:2px solid var(--edge);border-radius:6px;overflow:hidden;background:var(--tile)}
+.bar i{display:block;height:100%;background:var(--pen);transition:width .25s}
+.prompt{background:var(--tile);border:2px solid var(--edge);border-radius:14px;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.big{font:400 clamp(30px,9vw,42px)/1.15 var(--display);color:var(--ink);overflow-wrap:anywhere}
+.flip{width:100%;min-height:230px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;text-align:center}
+.say{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;font-size:14px}
+.say svg{width:18px;height:18px;fill:currentColor}
+.pairs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pairs>div{display:flex;flex-direction:column;gap:10px}
+.pair{width:100%;min-height:58px;overflow-wrap:anywhere;padding:9px 7px}
+.pair.on{background:var(--sun);color:var(--on-pop)}
+.pair.done{background:var(--good-bg);color:var(--good);border-color:var(--good);box-shadow:none;cursor:default}
+.shake{animation:shake .32s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+.sky{position:relative;height:clamp(330px,56vh,470px);border:2px solid var(--edge);border-radius:14px;overflow:hidden;background:var(--tile)}
+.balloon{position:absolute;top:0;width:calc(33.33% - 8px);min-height:96px;border-radius:50% 50% 46% 46%;padding:10px 5px;font:800 14.5px/1.15 var(--body);color:var(--on-pop);overflow-wrap:anywhere;border:2px solid var(--on-pop);box-shadow:none;background:var(--sun)}
+.balloon::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:30px;background:var(--edge)}
+.balloon:nth-child(2){background:var(--mint)}.balloon:nth-child(3){background:var(--pink)}
+.balloon.miss{opacity:.3}.balloon:active{transform:none}
+.lives{color:var(--pen);font-weight:800;letter-spacing:2px}
+.slots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:50px}
+.slot{min-width:34px;min-height:44px;padding:6px 8px;border-bottom:3px solid var(--edge);font:400 26px/1.2 var(--display);color:var(--ink);text-align:center}
+.slot.got{color:var(--good);border-color:var(--good)}
+.pool{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.pool button{min-width:48px;min-height:50px;font-size:20px}
+.pool button.lower{text-transform:lowercase}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.opt.ok{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+.opt.no{background:var(--bad-bg);opacity:.75}
+.gapq{font:400 clamp(26px,7vw,34px)/1.3 var(--display);color:var(--ink)}
+.gapq u{color:var(--pen);text-decoration-thickness:2px;text-underline-offset:5px}
+.note{font:400 clamp(44px,13vw,64px)/1 var(--display);color:var(--pen);transform:rotate(-3deg);text-align:center;padding-block:8px;text-wrap:balance}
+.bigstars{font-size:48px;color:var(--pen);text-align:center;letter-spacing:6px;line-height:1}
+.bigstars span{color:var(--grid)}
+.box{background:var(--tile);border:2px solid var(--edge);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label{font-weight:800;font-size:15px;color:var(--ink);display:flex;flex-direction:column;gap:5px}
+input,textarea,select{font:500 16px/1.4 var(--body);color:var(--text);background:var(--field);border:2px solid var(--muted);border-radius:9px;padding:9px 10px;width:100%;min-width:0}
+textarea{min-height:128px;resize:vertical}
+.hint{font-weight:500;color:var(--muted);font-size:14px}
+.err{color:var(--pen);font-weight:700;font-size:15px}
+.list-row{display:flex;flex-direction:column;gap:8px;padding-block:12px;border-top:2px dashed var(--grid)}
+.list-row:first-of-type{border-top:0}
+.list-row strong{font:400 23px/1.15 var(--display);color:var(--ink);overflow-wrap:anywhere}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;max-width:calc(100% - 32px);z-index:20;text-align:center}
+@media (max-width:370px){.games{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}.bar i{transition:none}}
+</style>
+<script type="application/json" id="app-data">{"baseUrl":"https://aulita55.github.io/aulita-game-lab/games/english-notebook/","books":[{"id":"b-sample","title":"Пример: начальная школа"}],"topics":[{"id":"t-animals","bookId":"b-sample","title":"Animals","words":[["cat","кошка"],["dog","собака"],["horse","лошадь"],["cow","корова"],["rabbit","кролик"],["monkey","обезьяна"],["elephant","слон"],["tiger","тигр"],["bear","медведь"],["frog","лягушка"],["duck","утка"],["sheep","овца"]],"sentences":[["I have got a dog.","У меня есть собака."],["The cat can jump.","Кошка умеет прыгать."],["Monkeys like bananas.","Обезьяны любят бананы."],["This is a big elephant.","Это большой слон."],["A frog can swim.","Лягушка умеет плавать."]],"gaps":[["I ___ got a rabbit.","have",["has","am"]],["She ___ got a horse.","has",["have","is"]],["A duck ___ swim.","can",["cans","is"]],["This is ___ elephant.","an",["a","on"]]]},{"id":"t-present-simple","bookId":"b-sample","title":"Present Simple","words":[["always","всегда"],["usually","обычно"],["often","часто"],["sometimes","иногда"],["never","никогда"],["every day","каждый день"]],"sentences":[["I go to school every day.","Я хожу в школу каждый день."],["She always reads books.","Она всегда читает книги."],["He does not like milk.","Он не любит молоко."],["Do you play football?","Ты играешь в футбол?"],["We never get up late.","Мы никогда не встаём поздно."]],"gaps":[["She ___ to school.","goes",["go","going"]],["I ___ milk every day.","drink",["drinks","drinking"]],["He ___ not like fish.","does",["do","is"]],["___ you play tennis?","Do",["Does","Are"]],["My sister ___ English.","speaks",["speak","speaking"]],["They ___ in London.","live",["lives","living"]]]}]}</script>
+<div id="app"></div>
+<script id="app-code">
+(function(){
+"use strict";
+const DATA=JSON.parse(document.getElementById("app-data").textContent);
+const FONTS="https://fonts.googleapis.com/css2?family=Neucha&family=Nunito:wght@500;700;800&display=swap";
+const app=document.getElementById("app");
+const caps={artifact:null,sample:null,downloads:null,teacher:false};
+let run=0,editing=null;
+
+/* ---------- helpers ---------- */
+function el(tag,props,...kids){const n=document.createElement(tag);if(props)for(const k in props){if(k==="on"){for(const e in props.on)n.addEventListener(e,props.on[e])}else if(k==="class")n.className=props[k];else if(k in n&&k!=="list")n[k]=props[k];else n.setAttribute(k,props[k])}for(const c of kids.flat()){if(c!==null&&c!==undefined&&c!==false)n.append(c)}return n}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const session={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}}};
+function toast(msg){document.querySelectorAll(".toast").forEach(t=>t.remove());const t=el("div",{class:"toast",role:"status",textContent:msg});document.body.append(t);setTimeout(()=>t.remove(),2800)}
+function canSpeak(){return "speechSynthesis" in window&&typeof SpeechSynthesisUtterance!=="undefined"}
+function speak(t){if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.88;speechSynthesis.speak(u)}catch(e){}}
+function sayBtn(t){if(!canSpeak())return null;const b=el("button",{class:"say",type:"button",ariaLabel:"Послушать",on:{click:e=>{e.stopPropagation();speak(t)}}});b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';b.append("Послушать");return b}
+let audio=null;
+function tone(ok){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.type=ok?"triangle":"square";o.frequency.value=ok?740:170;g.gain.setValueAtTime(ok?.09:.04,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.2);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.2)}catch(e){}}
+function shake(n){n.classList.remove("shake");void n.offsetWidth;n.classList.add("shake")}
+async function copy(text,input){try{await navigator.clipboard.writeText(text);toast("Скопировано. Вставьте в чат.")}catch(e){if(input){input.hidden=false;input.value=text;input.focus();input.select()}toast("Выделите текст и скопируйте вручную.")}}
+const starsText=n=>n?"★".repeat(n)+"☆".repeat(3-n):"";
+const bestKey=(t,g)=>"ee-best:"+t+":"+g;
+const bestOf=(t,g)=>Number(store.get(bestKey(t,g))||0);
+function pageUrl(hash){let framed=true;try{framed=window.top!==window.self}catch(e){}const base=framed?DATA.baseUrl:location.origin+location.pathname;return base?base.split("#")[0]+(hash?"#"+hash:""):""}
+const topicById=id=>DATA.topics.find(t=>t.id===id);
+const bookById=id=>DATA.books.find(b=>b.id===id);
+const clean=s=>String(s).replace(/^(a|an|the|to)\s+/i,"").trim();
+const spellable=t=>t.words.filter(w=>/^[a-z'-]{2,14}$/i.test(clean(w[0])));
+const sentenceable=t=>t.sentences.filter(s=>s[0].trim().split(/\s+/).length>=2);
+
+const GAMES=[
+ {key:"cards",mark:"Aa",title:"Карточки",desc:"Смотри, слушай, запоминай",ok:t=>t.words.length>0,run:playCards},
+ {key:"pairs",mark:"a = я",title:"Пары",desc:"Соедини слово и перевод",ok:t=>t.words.length>=3,run:playPairs},
+ {key:"balloons",mark:"pop!",title:"Шарики",desc:"Лопни шарик с переводом",ok:t=>t.words.length>=3,run:playBalloons},
+ {key:"letters",mark:"c_t",title:"Буквы",desc:"Собери слово по буквам",ok:t=>spellable(t).length>0,run:playLetters},
+ {key:"sentences",mark:"I like…",title:"Предложения",desc:"Расставь слова по порядку",ok:t=>sentenceable(t).length>0,run:playSentences},
+ {key:"gaps",mark:"___",title:"Пропуски",desc:"Выбери правильную форму",ok:t=>t.gaps.length>0,run:playGaps}
+];
+
+/* ---------- views ---------- */
+function header(){const b=[];if(caps.teacher)b.push(el("button",{type:"button",textContent:location.hash==="#studio"?"Как видит ученик":"Кабинет учителя",on:{click:()=>{location.hash=location.hash==="#studio"?"":"studio"}}}));return el("header",{class:"top"},el("h1",null,"Английская тетрадка"),b)}
+function viewHome(){
+ let cur=store.get("ee-book");if(!bookById(cur))cur=DATA.books[0]?DATA.books[0].id:null;
+ const list=el("div",{class:"stack"});
+ const chips=el("div",{class:"chips"});
+ function paint(){chips.replaceChildren(...DATA.books.map(b=>el("button",{class:"chip",type:"button",textContent:b.title,ariaPressed:String(b.id===cur),on:{click:()=>{cur=b.id;store.set("ee-book",cur);paint()}}})));
+  list.replaceChildren(...DATA.topics.filter(t=>t.bookId===cur).map(t=>{const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;return el("button",{class:"topic",type:"button",on:{click:()=>{location.hash=t.id}}},el("span",null,el("b",null,t.title)),el("span",{class:"muted small"},got+" из "+total+" игр"))}))}
+ paint();
+ return [header(),DATA.books.length?el("section",{class:"stack"},el("h2",null,"Выбери учебник"),chips,el("h2",null,"Выбери тему"),list):el("p",{class:"muted"},"Учитель пока не добавил темы.")]
+}
+function viewTopic(t){
+ const book=bookById(t.bookId);
+ const games=GAMES.filter(g=>g.ok(t));
+ return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=""}}})),
+  el("section",{class:"stack"},el("p",{class:"muted small"},book?book.title:""),el("h1",null,t.title),el("p",null,"Выбери игру. Начинать лучше с карточек.")),
+  el("section",{class:"games"},games.map(g=>el("button",{class:"game",type:"button",on:{click:()=>startGame(t,g)}},el("span",{class:"mark"},g.mark),el("strong",null,g.title),el("small",null,g.desc),el("span",{class:"stars"},starsText(bestOf(t.id,g.key)))))),
+  reportBox(t)]
+}
+function reportBox(t){
+ const nameI=el("input",{id:"kid-name",value:store.get("ee-name")||"",placeholder:"Например, Маша",autocomplete:"off",on:{input:e=>store.set("ee-name",e.target.value)}});
+ const fallback=el("textarea",{id:"report-text",hidden:true,readOnly:true});
+ return el("section",{class:"box"},el("h3",null,"Показать результат учителю"),el("label",{htmlFor:"kid-name"},"Твоё имя",nameI),
+  el("button",{type:"button",textContent:"Скопировать результат",on:{click:()=>{const played=GAMES.filter(g=>bestOf(t.id,g.key)>0).map(g=>g.title+" "+starsText(bestOf(t.id,g.key)));copy((nameI.value.trim()||"Ученик")+", тема «"+t.title+"»: "+(played.join(", ")||"пока не играл(а)"),fallback)}}}),fallback)
+}
+
+/* ---------- game frame ---------- */
+function startGame(t,g){
+ const my=++run;
+ const stage=el("div",{class:"stack"});
+ const bar=el("i",{style:"width:0%"});
+ app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),stage));
+ const ctx={stage,alive:()=>my===run,progress:(d,n)=>{bar.style.width=Math.round(100*d/n)+"%"},finish:(stars,line)=>{if(my!==run)return;bar.style.width="100%";showResult(t,g,stars,line,stage)}};
+ g.run(t,ctx);
+}
+function starsBy(mistakes,total){const r=mistakes/Math.max(total,1);return r===0?3:r<=.34?2:1}
+function showResult(t,g,stars,line,stage){
+ if(stars>bestOf(t.id,g.key))store.set(bestKey(t.id,g.key),String(stars));
+ const words=["","Ещё разок?","Хорошо!","Отлично!"];
+ const s=el("div",{class:"bigstars",ariaLabel:"Звёзд: "+stars});s.append("★".repeat(stars));s.append(el("span",null,"★".repeat(3-stars)));
+ tone(true);
+ stage.replaceChildren(el("p",{class:"note"},words[stars]),s,el("p",{class:"muted",style:"text-align:center"},line),
+  el("div",{class:"row",style:"justify-content:center"},el("button",{class:"main",type:"button",textContent:"Играть ещё раз",on:{click:()=>startGame(t,g)}}),el("button",{type:"button",textContent:"Другая игра",on:{click:()=>{run++;render()}}})),reportBox(t));
+}
+
+/* ---------- games ---------- */
+function playCards(t,c){
+ const queue=shuffle(t.words);const total=queue.length;let done=0,repeats=0;
+ function next(){
+  if(!c.alive())return;
+  if(!queue.length){c.finish(3,"Все слова пройдены. Теперь попробуй другие игры.");return}
+  const w=queue[0];let open=false;
+  const face=el("span",{class:"big",textContent:w[0]});
+  const sub=el("span",{class:"muted small",textContent:"Нажми, чтобы увидеть перевод"});
+  const actions=el("div",{class:"row",style:"justify-content:center",hidden:true},
+   el("button",{type:"button",textContent:"Повторю ещё",on:{click:()=>{repeats++;queue.push(queue.shift());next()}}}),
+   el("button",{class:"main",type:"button",textContent:"Запомнил(а)",on:{click:()=>{queue.shift();done++;c.progress(done,total);next()}}}));
+  const card=el("button",{class:"flip",type:"button",on:{click:()=>{open=!open;face.textContent=open?w[1]:w[0];sub.textContent=open?"Нажми, чтобы вернуться к английскому":"Нажми, чтобы увидеть перевод";actions.hidden=false;if(open)speak(w[0])}}},face,sub);
+  c.stage.replaceChildren(card,el("div",{class:"row",style:"justify-content:center"},sayBtn(w[0])),actions,el("p",{class:"muted small",style:"text-align:center"},"Осталось слов: "+queue.length));
+ }
+ next();
+}
+function playPairs(t,c){
+ const pick=shuffle(t.words).slice(0,6);let left=null,mistakes=0,matched=0;
+ const mk=(text,side)=>{const b=el("button",{class:"pair",type:"button",textContent:text,on:{click:()=>tap(b,text,side)}});return b};
+ function tap(b,text,side){
+  if(b.classList.contains("done"))return;
+  if(side==="en"){if(left)left.b.classList.remove("on");left={b,text};b.classList.add("on");speak(text);return}
+  if(!left){shake(b);return}
+  const ok=pick.some(w=>w[0]===left.text&&w[1]===text);
+  if(ok){tone(true);left.b.classList.remove("on");left.b.classList.add("done");b.classList.add("done");left=null;matched++;c.progress(matched,pick.length);if(matched===pick.length)setTimeout(()=>c.finish(starsBy(mistakes,pick.length),"Ошибок: "+mistakes),450)}
+  else{tone(false);mistakes++;shake(b);shake(left.b)}
+ }
+ c.stage.replaceChildren(el("p",null,"Нажми английское слово слева, потом перевод справа."),el("div",{class:"pairs"},el("div",null,shuffle(pick).map(w=>mk(w[0],"en"))),el("div",null,shuffle(pick).map(w=>mk(w[1],"ru")))));
+}
+function playBalloons(t,c){
+ const rounds=shuffle(t.words).slice(0,10);let i=0,lives=3,right=0;
+ const still=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;
+ const end=()=>{const r=right/rounds.length;c.finish(r>=.9?3:r>=.6?2:1,"Угадано "+right+" из "+rounds.length)};
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length||lives<=0){end();return}
+  const w=rounds[i];let over=false;
+  const wrongs=shuffle(t.words.filter(x=>x[1]!==w[1])).slice(0,2).map(x=>x[1]);
+  const sky=el("div",{class:"sky"});
+  const hearts=el("span",{class:"lives",ariaLabel:"Жизни: "+lives,textContent:"♥".repeat(lives)});
+  c.stage.replaceChildren(el("div",{class:"prompt"},el("span",{class:"big"},w[0]),sayBtn(w[0])),el("div",{class:"top"},hearts,el("span",{class:"muted small"},"Шарик "+(i+1)+" из "+rounds.length)),sky);
+  speak(w[0]);
+  const anims=[];
+  const close=(gain)=>{if(over)return;over=true;anims.forEach(a=>{try{a.cancel()}catch(e){}});if(gain)right++;else lives--;i++;c.progress(i,rounds.length);setTimeout(next,gain?350:700)};
+  shuffle([w[1],...wrongs]).forEach((text,n)=>{
+   const b=el("button",{class:"balloon",type:"button",textContent:text,on:{click:()=>{if(over)return;if(text===w[1]){tone(true);b.style.visibility="hidden";close(true)}else{tone(false);b.classList.add("miss");b.disabled=true;lives--;hearts.textContent="♥".repeat(Math.max(lives,0));if(lives<=0){over=true;anims.forEach(a=>{try{a.cancel()}catch(e){}});setTimeout(end,500)}}}}});
+   b.style.left="calc("+(n*33.33)+"% + 4px)";sky.append(b);
+   const H=sky.clientHeight,h=b.offsetHeight+34;
+   if(still||!b.animate){b.style.top=Math.max(12,(H-h)/2)+"px";return}
+   const a=b.animate([{transform:"translateY("+H+"px)"},{transform:"translateY("+(-h)+"px)"}],{duration:7600+n*500,delay:n*350,easing:"linear",fill:"both"});
+   anims.push(a);
+   if(text===w[1])a.onfinish=()=>{if(!c.alive()||over)return;tone(false);close(false)};
+  });
+ }
+ next();
+}
+function assemble(c,rounds,build,hint){
+ let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const r=build(rounds[i]);let pos=0;
+  const slots=r.tokens.map(()=>el("span",{class:"slot"}," "));
+  let order=shuffle(r.tokens);for(let n=0;n<5&&r.tokens.length>1&&order.join(" ")===r.tokens.join(" ");n++)order=shuffle(r.tokens);
+  const pool=el("div",{class:"pool"},order.map(tok=>{const b=el("button",{type:"button",class:r.lower?"lower":"",textContent:tok,on:{click:()=>{
+    if(tok.toLowerCase()===r.tokens[pos].toLowerCase()){slots[pos].textContent=r.tokens[pos];slots[pos].classList.add("got");pos++;b.style.visibility="hidden";
+     if(pos===r.tokens.length){tone(true);speak(r.say);i++;c.progress(i,rounds.length);setTimeout(next,1100)}}
+    else{tone(false);mistakes++;shake(b)}}}});return b}));
+  c.stage.replaceChildren(el("p",{class:"muted small"},hint+" · "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("span",{class:"big",style:"font-size:clamp(25px,7vw,34px)"},r.ask),r.audio?sayBtn(r.say):null),el("div",{class:"slots"},slots),pool);
+ }
+ next();
+}
+function playLetters(t,c){assemble(c,shuffle(spellable(t)).slice(0,8),w=>{const word=clean(w[0]).toLowerCase();return{tokens:[...word],ask:w[1],say:word,audio:true,lower:true}},"Собери слово")}
+function playSentences(t,c){assemble(c,shuffle(sentenceable(t)).slice(0,8),s=>({tokens:s[0].trim().split(/\s+/),ask:s[1],say:s[0],audio:false}),"Собери предложение")}
+function playGaps(t,c){
+ const rounds=shuffle(t.gaps).slice(0,10);let i=0,mistakes=0;
+ function next(){
+  if(!c.alive())return;
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
+  const g=rounds[i];const parts=g[0].split("___");
+  const gap=el("u",null,"     ");
+  const q=el("p",{class:"gapq"},parts[0],gap,parts.slice(1).join("___"));
+  let over=false;
+  const opts=shuffle([g[1],...g[2]]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(o===g[1]){over=true;tone(true);gap.textContent=o;b.classList.add("ok");speak(g[0].replace("___",o));i++;c.progress(i,rounds.length);setTimeout(next,1200)}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b});
+  c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},q),el("div",{class:"opts"},opts));
+ }
+ next();
+}
+
+/* ---------- teacher ---------- */
+function parsePairs(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const m=l.match(/^(.+?)(?:\s+[-–—=]\s+|\t+)(.+)$/);if(m)ok.push([m[1].trim(),m[2].trim()]);else bad.push(n+1)});return{ok,bad}}
+function parseGaps(text){const ok=[],bad=[];text.split(/\r?\n/).forEach((l,n)=>{l=l.trim();if(!l)return;const p=l.split("|").map(x=>x.trim());const q=(p[0]||"").replace(/_{2,}/g,"___");const wrong=(p[2]||"").split(",").map(x=>x.trim()).filter(Boolean);if(q.includes("___")&&p[1]&&wrong.length)ok.push([q,p[1],wrong]);else bad.push(n+1)});return{ok,bad}}
+const pairsText=a=>a.map(x=>x[0]+" - "+x[1]).join("\n");
+const gapsText=a=>a.map(x=>x[0]+" | "+x[1]+" | "+x[2].join(", ")).join("\n");
+const newId=p=>p+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function escJson(o){return JSON.stringify(o).replace(/</g,"\\u003c")}
+function buildDoc(data){
+ const reset=(document.head.querySelector("style")||{}).textContent||"";
+ const css=document.getElementById("app-style").textContent;
+ const js=document.getElementById("app-code").textContent;
+ return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+reset+'</style></head><body>'
+  +'<title>Английская тетрадка</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="stylesheet" href="'+FONTS+'">\n'
+  +'<style id="app-style">'+css+'</style>\n<script type="application/json" id="app-data">'+escJson(data)+'<\/script>\n<div id="app"></div>\n<script id="app-code">'+js+'<\/script>'
+  +'</body></html>';
+}
+async function save(data,msg,back){
+ if(!caps.artifact){toast("Сохранение здесь недоступно.");return false}
+ session.set("ee-return",back||"studio");if(msg)session.set("ee-toast",msg);
+ try{await caps.artifact.publish(buildDoc(data));return true}
+ catch(e){session.del("ee-return");session.del("ee-toast");
+  if(e&&e.code==="conflict")toast("Страница только что обновилась. Повторите действие после перезагрузки.");
+  else if(e&&(e.code==="not_writer"||e.code==="not_granted"))toast("У вас нет прав менять эту страницу.");
+  else if(e&&e.code==="rate_limited")toast("Слишком часто. Подождите минуту и сохраните снова.");
+  else toast("Не удалось сохранить. Попробуйте ещё раз.");
+  return false}
+}
+function viewStudio(){
+ const urlI=el("input",{id:"base-url",value:DATA.baseUrl,placeholder:"https://…"});
+ const parts=[header(),
+  el("section",{class:"stack"},el("h2",null,"Кабинет учителя"),el("p",{class:"muted"},"Здесь вы добавляете темы и копируете ссылки. Ученики этот раздел не видят."),el("button",{class:"main",type:"button",textContent:"Добавить тему",on:{click:()=>{editing=blankTopic();render()}}})),
+  editing?editor():null,
+  el("section",{class:"box"},el("h3",null,"Ваши темы"),DATA.topics.length?DATA.books.map(b=>el("div",{class:"stack"},el("p",{class:"muted small"},b.title),DATA.topics.filter(t=>t.bookId===b.id).map(topicRow))):el("p",{class:"muted"},"Тем пока нет.")),
+  el("section",{class:"box"},el("h3",null,"Адрес страницы"),el("label",{htmlFor:"base-url"},"Из него собираются ссылки на темы",urlI),el("span",{class:"hint"},"Сейчас это ваша страница на GitHub. Новая тема откроется там после того, как вы обновите файл."),el("div",null,el("button",{type:"button",textContent:"Сохранить адрес",on:{click:()=>{const d=clone();d.baseUrl=urlI.value.trim();save(d,"Адрес сохранён")}}}))),
+  caps.downloads?el("section",{class:"box"},el("h3",null,"Обновить игры на GitHub"),el("p",{class:"small"},"После новых тем скачайте файл и замените им games/english-notebook/index.html в репозитории aulita-game-lab. Ссылка на тему заработает через пару минут."),el("div",null,el("button",{type:"button",textContent:"Скачать файл",on:{click:async()=>{try{await caps.downloads.save({filename:"index.html",data:buildDoc(DATA)})}catch(e){if(!e||e.code!=="declined")toast("Скачать файл здесь не получилось.")}}}}))):null];
+ return parts;
+}
+const clone=()=>JSON.parse(JSON.stringify(DATA));
+function blankTopic(){return{id:null,bookId:DATA.books[0]?DATA.books[0].id:"__new",title:"",words:"",sentences:"",gaps:""}}
+function topicRow(t){
+ const fb=el("input",{hidden:true,readOnly:true,id:"link-"+t.id});
+ let armed=false;
+ const del=el("button",{class:"ghost",type:"button",textContent:"Удалить",on:{click:()=>{if(!armed){armed=true;del.textContent="Точно удалить?";return}const d=clone();d.topics=d.topics.filter(x=>x.id!==t.id);d.books=d.books.filter(b=>d.topics.some(x=>x.bookId===b.id));save(d,"Тема удалена")}}});
+ return el("div",{class:"list-row"},el("strong",null,t.title),el("span",{class:"hint"},t.words.length+" слов · "+t.sentences.length+" предложений · "+t.gaps.length+" заданий"),
+  el("div",{class:"row"},el("button",{class:"main",type:"button",textContent:"Скопировать ссылку",on:{click:()=>{const u=pageUrl(t.id);if(!u){toast("Сначала сохраните адрес страницы ниже.");return}copy("Игра по английскому, тема «"+t.title+"»: "+u,fb)}}}),
+   el("button",{type:"button",textContent:"Открыть",on:{click:()=>{location.hash=t.id}}}),
+   el("button",{type:"button",textContent:"Изменить",on:{click:()=>{editing={id:t.id,bookId:t.bookId,title:t.title,words:pairsText(t.words),sentences:pairsText(t.sentences),gaps:gapsText(t.gaps)};render();window.scrollTo(0,0)}}}),del),fb);
+}
+function editor(){
+ const e=editing;
+ const newBook=el("input",{id:"new-book",placeholder:"Например, Spotlight 3",value:e.newBook||"",on:{input:x=>{e.newBook=x.target.value}}});
+ const newWrap=el("label",{htmlFor:"new-book",hidden:e.bookId!=="__new"},"Название учебника",newBook);
+ const book=el("select",{id:"topic-book",on:{change:x=>{e.bookId=x.target.value;newWrap.hidden=e.bookId!=="__new"}}},DATA.books.map(b=>el("option",{value:b.id,textContent:b.title})),el("option",{value:"__new",textContent:"Новый учебник…"}));
+ book.value=e.bookId;
+ const title=el("input",{id:"topic-title",value:e.title,placeholder:"Например, Unit 3. My family",on:{input:x=>{e.title=x.target.value}}});
+ const ta=(id,key,ph)=>el("textarea",{id,value:e[key],placeholder:ph,spellcheck:false,on:{input:x=>{e[key]=x.target.value}}});
+ const words=ta("topic-words","words","cat - кошка\nto run - бегать");
+ const sents=ta("topic-sentences","sentences","I have got a dog. - У меня есть собака.");
+ const gaps=ta("topic-gaps","gaps","She ___ to school. | goes | go, going");
+ const errBox=el("p",{class:"err",hidden:true});
+ const scan=scanner(e,{title,words,sents,gaps});
+ const cancel=el("button",{class:"ghost",type:"button",textContent:"Отмена",on:{click:()=>{editing=null;render()}}});
+ const saveBtn=el("button",{class:"main",type:"button",textContent:"Сохранить тему",on:{click:async()=>{
+  const w=parsePairs(e.words),s=parsePairs(e.sentences),g=parseGaps(e.gaps);const errs=[];
+  if(!e.title.trim())errs.push("Напишите название темы.");
+  if(e.bookId==="__new"&&!(e.newBook||"").trim())errs.push("Напишите название учебника.");
+  if(w.bad.length)errs.push("Слова: проверьте строки "+w.bad.join(", ")+". Нужен формат «cat - кошка».");
+  if(s.bad.length)errs.push("Предложения: проверьте строки "+s.bad.join(", ")+".");
+  if(g.bad.length)errs.push("Пропуски: проверьте строки "+g.bad.join(", ")+". Нужны ___, ответ и неверные варианты.");
+  if(!errs.length&&!w.ok.length&&!s.ok.length&&!g.ok.length)errs.push("Добавьте хотя бы одно слово или задание.");
+  if(errs.length){errBox.textContent=errs.join(" ");errBox.hidden=false;return}
+  const d=clone();let bookId=e.bookId;
+  if(bookId==="__new"){bookId=newId("b");d.books.push({id:bookId,title:e.newBook.trim()})}
+  const item={id:e.id||newId("t"),bookId,title:e.title.trim(),words:w.ok,sentences:s.ok,gaps:g.ok};
+  const at=d.topics.findIndex(x=>x.id===e.id);if(at>=0)d.topics[at]=item;else d.topics.push(item);
+  d.books=d.books.filter(b=>d.topics.some(x=>x.bookId===b.id));
+  saveBtn.disabled=true;saveBtn.textContent="Сохраняю…";
+  const ok=await save(d,"Тема сохранена. Скопируйте ссылку в списке ниже.");
+  if(!ok){saveBtn.disabled=false;saveBtn.textContent="Сохранить тему"}
+ }}});
+ return el("section",{class:"box"},el("h3",null,e.id?"Изменить тему":"Новая тема"),scan,
+  el("label",{htmlFor:"topic-book"},"Учебник",book),newWrap,el("label",{htmlFor:"topic-title"},"Название темы",title),
+  el("label",{htmlFor:"topic-words"},el("span",null,"Слова и фразы ",el("span",{class:"hint"},"по одной на строку: слово - перевод")),words),
+  el("label",{htmlFor:"topic-sentences"},el("span",null,"Предложения ",el("span",{class:"hint"},"предложение - перевод")),sents),
+  el("label",{htmlFor:"topic-gaps"},el("span",null,"Грамматика с пропуском ",el("span",{class:"hint"},"задание | ответ | неверные варианты")),gaps),
+  errBox,el("div",{class:"row"},saveBtn,cancel));
+}
+function scanner(e,f){
+ if(!caps.sample)return null;
+ const status=el("p",{class:"small muted",hidden:true});
+ let ctl=null;
+ const stop=el("button",{class:"ghost",type:"button",textContent:"Остановить",hidden:true,on:{click:()=>ctl&&ctl.abort()}});
+ const input=el("input",{id:"scan-files",type:"file",accept:"image/jpeg,image/png,image/webp",multiple:true,on:{change:async()=>{
+  const files=[...input.files];if(!files.length)return;
+  status.hidden=false;status.textContent="Читаю страницы. Это занимает до минуты…";stop.hidden=false;ctl=new AbortController();
+  try{
+   const r=await caps.sample.json('На фото страницы школьного учебника английского языка. Подготовь материал для детских игр. Ответь только JSON такого вида: {"title":"","words":[{"en":"","ru":""}],"sentences":[{"en":"","ru":""}],"gaps":[{"q":"She ___ to school.","answer":"goes","wrong":["go","going"]}]}. title: название темы со страницы. words: слова и короткие фразы со страницы с русским переводом. sentences: до 10 простых предложений со страницы или из её лексики, с переводом. gaps: если на странице есть грамматика, до 10 заданий на неё, в каждом ровно один пропуск ___ и 2 неверных варианта; иначе пустой список. Бери только лексику и грамматику с этих страниц, уровень сложности сохраняй как в учебнике.',{images:files,signal:ctl.signal});
+   const pair=a=>Array.isArray(a)?a.filter(x=>x&&x.en&&x.ru).map(x=>[String(x.en).trim(),String(x.ru).trim()]):[];
+   const gp=Array.isArray(r.gaps)?r.gaps.filter(x=>x&&x.q&&x.answer&&Array.isArray(x.wrong)&&x.wrong.length&&String(x.q).includes("___")).map(x=>[String(x.q).trim(),String(x.answer).trim(),x.wrong.map(String)]):[];
+   const join=(old,add)=>[old.trim(),add].filter(Boolean).join("\n");
+   if(!e.title.trim()&&r.title){e.title=String(r.title);f.title.value=e.title}
+   e.words=join(e.words,pairsText(pair(r.words)));f.words.value=e.words;
+   e.sentences=join(e.sentences,pairsText(pair(r.sentences)));f.sents.value=e.sentences;
+   e.gaps=join(e.gaps,gapsText(gp));f.gaps.value=e.gaps;
+   status.textContent="Готово. Проверьте текст ниже и исправьте, если нужно. Сами фото в игру не попадают.";
+  }catch(err){
+   const code=err&&err.code;
+   status.textContent=code==="cancelled"?"Остановлено.":code==="not_granted"||code==="sampling_disabled"?"Распознавание не разрешено. Введите слова вручную.":code==="image_rejected"?"Этот файл не подошёл. Попробуйте другое фото.":code==="rate_limited"?"Достигнут лимит. Попробуйте позже.":"Не получилось распознать. Попробуйте более чёткое фото.";
+  }finally{stop.hidden=true;input.value=""}
+ }}});
+ return el("div",{class:"stack"},el("label",{htmlFor:"scan-files"},el("span",null,"Фото страниц учебника ",el("span",{class:"hint"},"заполнят поля ниже")),input),el("div",{class:"row"},status,stop));
+}
+
+/* ---------- router ---------- */
+function render(){
+ const h=location.hash.replace(/^#/,"");run++;
+ let view;
+ if(h==="studio"&&caps.teacher)view=viewStudio();
+ else{const t=topicById(h);view=t?viewTopic(t):viewHome()}
+ app.replaceChildren(el("main",{class:"wrap"},view));
+}
+window.addEventListener("hashchange",()=>{window.scrollTo(0,0);render()});
+render();
+(async function(){
+ if(!window.claude||!window.claude.use)return;
+ const u=await window.claude.use("user");
+ const can=u?await u.canEdit():false;
+ if(!can)return;
+ caps.teacher=true;
+ const [a,s,d]=await Promise.all([window.claude.use("artifact"),window.claude.use("sample"),window.claude.use("downloads")]);
+ caps.artifact=a;caps.downloads=d;
+ if(s){const l=await s.limits().catch(()=>null);if(l&&l.images)caps.sample=s}
+ const back=session.get("ee-return"),note=session.get("ee-toast");session.del("ee-return");session.del("ee-toast");
+ if(back&&location.hash!=="#"+back){location.hash=back}else render();
+ if(note)toast(note);
+})();
+})();
+</script>
+</body></html>
