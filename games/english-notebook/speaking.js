@@ -29,7 +29,7 @@ function play(t,c,h,options={}){
  const word=el('select',{ariaLabel:kind==='colours'?'Выбери цвет':'Выбери животное'},words.map(w=>el('option',{value:w[0],textContent:w[0]+' — '+w[1]})));
  const detail=el('select',{ariaLabel:'Описание'}),detailLabel=el('label',null,'Описание',detail);
  const question=el('p',{class:'speech-question',lang:'en'}),answer=el('p',{class:'speech-answer',lang:'en'}),preview=el('div',{class:'speech-preview'});
- const feedback=el('p',{class:'speech-feedback',role:'status',ariaLive:'polite'},'Выбери ответ. Послушай образец и запиши свою фразу.');
+ const feedback=el('p',{class:'speech-feedback',role:'status',ariaLive:'polite'},options.picture?'Рассмотри фото. Запиши одну фразу о ситуации, затем останови запись.':'Выбери ответ. Послушай образец и запиши свою фразу.');
  const count=el('p',{class:'speech-count'},'Разных фраз: 0 из 5');
  const player=el('div',{class:'speech-recording',hidden:true}),playerCaption=el('p',{class:'hint'}),audio=el('audio',{controls:true,class:'speech-player',ariaLabel:'Моя последняя запись'}),download=el('a',{class:'btn',textContent:'Скачать запись'});
  player.append(playerCaption,audio,download);
@@ -54,7 +54,7 @@ function play(t,c,h,options={}){
  for(const select of [mode,word])select.addEventListener('change',()=>{version++;paint();feedback.className='speech-feedback';feedback.textContent='Произнеси фразу целиком.'});detail.addEventListener('change',()=>{version++;paint(false)});
  function stopTracks(s){if(s.stream)s.stream.getTracks().forEach(track=>track.stop())}
  function release(){if(url){URL.revokeObjectURL(url);url=null}}
- function showRecording(record,saved){release();url=URL.createObjectURL(record.blob);audio.src=url;download.href=url;download.download='aulita-speaking-'+t.id+(record.blob.type.includes('mp4')?'.m4a':'.webm');playerCaption.textContent='Моя запись: '+record.phrase;player.hidden=false;storageNote.textContent=saved?'Последняя запись этой темы сохранена в этом браузере.':'Запись доступна до выхода из задания. Её можно скачать.'}
+ function showRecording(record,saved){release();url=URL.createObjectURL(record.blob);audio.src=url;download.href=url;download.download='aulita-speaking-'+t.id+(record.blob.type.includes('mp4')?'.m4a':'.webm');playerCaption.textContent='Моя запись'+(record.transcript?' · '+record.transcript:'');player.hidden=false;storageNote.textContent=saved?'Последняя запись этой темы сохранена в этом браузере.':'Запись доступна до выхода из задания. Её можно скачать.'}
  function sayFeedback(text,kind){feedback.textContent=text;feedback.className='speech-feedback'+(kind?' '+kind:'')}
  async function finalise(s){
   if(s.finalised||s.cancelled||!s.blobReady||!s.ended)return;s.finalised=true;clearTimeout(s.timer);clearTimeout(s.endTimer);stopTracks(s);
