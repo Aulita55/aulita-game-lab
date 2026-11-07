@@ -2,7 +2,7 @@
 (function(global){'use strict';
 
 const STEPS=[
- {title:"Знакомство",hint:"Смотри, слушай и повторяй. Ошибок здесь нет.",keys:["explore","cards","verbcards","read"]},
+ {title:"Знакомство",hint:"Смотри, слушай и повторяй. Ошибок здесь нет.",keys:["cards","verbcards","explore","read"]},
  {title:"Узнавание",hint:"Слушай и находи нужную картинку.",keys:["listen","pairs","phrasepairs","memory","truefalse","balloons","minimal","syllable","scenelisten"]},
  {title:"Запоминание",hint:"Собери, напиши и запомни.",keys:["letters","search","sentences","race","forms","typeform","scenebuild"]},
  {title:"В ситуации",hint:"Прочитай и послушай историю, ответь на вопросы.",keys:["story","scenechoice","missing","adventure","maze"]},
