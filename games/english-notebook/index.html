@@ -155,6 +155,52 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 .freq-bars i:nth-child(1){height:30%}.freq-bars i:nth-child(2){height:47%}.freq-bars i:nth-child(3){height:64%}.freq-bars i:nth-child(4){height:82%}.freq-bars i:nth-child(5){height:100%}
 .freq-bars i.on{background:var(--pen);border-color:var(--pen)}
 .freq small{font-size:13px;font-weight:800;color:var(--ink)}
+.lesson-path{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.lesson-step{position:relative;padding:0 0 22px 52px}
+.lesson-step::before{content:"";position:absolute;left:19px;top:40px;bottom:0;width:3px;background:var(--grid);border-radius:2px}
+.lesson-step:last-child::before{display:none}
+.lesson-step.done::before{background:var(--good)}
+.step-head{display:flex;gap:12px;align-items:flex-start;margin:0 0 10px -52px}
+.step-head h3{margin:0}
+.step-num{flex:0 0 40px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;background:var(--sun);color:var(--on-pop);border:2px solid var(--edge)}
+.lesson-step.done .step-num{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+.lesson-step.locked .step-num{background:var(--tile);color:var(--muted);border-color:var(--muted)}
+.lesson-step.locked .games{opacity:.45}
+.lesson-step.extra .step-num{background:var(--tile)}
+.lesson-step:last-child:not(.extra) .step-num{background:var(--pen);color:#fff}
+.game-tag{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--grid);color:var(--ink)}
+.game-tag.fun{background:var(--pink);color:var(--on-pop)}.game-tag.learn{background:var(--mint);color:var(--on-pop)}
+.explore-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.explore-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;min-width:0}
+.explore-tile .pic{width:72px;height:72px}
+.explore-tile.seen{border-color:var(--good);background:var(--good-bg)}
+.explore-label{font-weight:800;font-size:16px;display:flex;flex-direction:column;align-items:center;overflow-wrap:anywhere}
+.explore-label small{font-weight:600;color:var(--muted);font-size:12px}
+.story-frame{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;background:var(--tile);border:2px solid var(--edge);border-radius:16px;padding:12px}
+.story-pic{display:flex;justify-content:center}.story-pic .pic{width:min(100%,320px)!important;height:auto!important;aspect-ratio:4/3;max-height:260px}
+.story-pic .pic.scene{aspect-ratio:auto}
+.story-bubble{position:relative;background:var(--paper);border:2px solid var(--edge);border-radius:14px;padding:10px 14px}
+.story-bubble p{margin:0;font-size:20px;line-height:1.35}.story-who{display:block;color:var(--pen);font-size:14px;margin-bottom:2px}
+.story-ru{text-align:center;color:var(--muted);margin:0}.story-q{font-size:20px;font-weight:700;text-align:center}
+.pic-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pic-opt{padding:8px;min-width:0;display:flex;justify-content:center}.pic-opt .pic{width:100%!important;height:auto!important;aspect-ratio:1;max-height:130px}
+.pic-opt .pic.scene{aspect-ratio:auto}
+.rule-card{background:var(--tile);border:2px solid var(--edge);border-radius:16px;padding:14px 16px}
+.rule-card ul,.rule-peek ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.rule-examples{display:flex;flex-direction:column;gap:10px}
+.rule-example{display:flex;gap:12px;align-items:center;background:var(--tile);border:2px solid var(--grid);border-radius:14px;padding:8px}
+.rule-example>.pic,.rule-example>.photo-with-badge{flex:0 0 92px;width:92px!important;height:92px!important}
+.rule-example>div{min-width:0}.rule-en{margin:0;font-size:19px}.rule-en b{color:var(--pen)}
+.say-model{font-size:22px;font-weight:800;color:var(--ink);text-align:center;margin:0}
+.mic{font-size:18px}
+.city-hud{display:flex;justify-content:space-between;gap:8px;font-weight:800;color:var(--ink);flex-wrap:wrap}
+.city-wrap{border:2px solid var(--edge);border-radius:18px;overflow:hidden;background:#c9ecff;touch-action:manipulation}
+.city-canvas{display:block;max-width:100%}
+.city-panel{display:flex;flex-direction:column;gap:10px}
+.city-say{font-weight:800;text-align:center;margin:0;color:var(--ink)}
+.city-builds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.city-build{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;min-width:0}
+.city-build small{color:var(--muted);font-size:12px}.city-icon{width:64px;height:64px}
 .opt.line{width:100%;text-align:left;padding:14px;font-size:18px}
 .pic.photo{object-fit:cover;border-radius:10px}
 </style>
@@ -171,6 +217,7 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 <script src="speaking.js?v=20261107-2"></script>
 <script src="photo-catalog.js?v=20261107-1"></script>
 <script src="situations.js?v=20261107-1"></script>
+<script src="lesson.js?v=20261107-2"></script>
 <script src="mini-games.js?v=20261106-4"></script>
 <script id="app-code">
 (function(){
@@ -188,8 +235,9 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 function toast(msg){document.querySelectorAll(".toast").forEach(t=>t.remove());const t=el("div",{class:"toast",role:"status",textContent:msg});document.body.append(t);setTimeout(()=>t.remove(),2800)}
 function canSpeak(){return !!window.NotebookVoice?.available()||("speechSynthesis" in window&&typeof SpeechSynthesisUtterance!=="undefined")}
-function speak(t){if(window.NotebookVoice)return NotebookVoice.speak(t);if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.88;speechSynthesis.speak(u)}catch(e){}}
+function speak(t){if(window.NotebookVoice)return NotebookVoice.speak(t,{requireRecording:!!ACTIVE_TOPIC?.verbs});if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.88;speechSynthesis.speak(u)}catch(e){}}
 function sayBtn(t){if(!canSpeak())return null;const b=el("button",{class:"say",type:"button",ariaLabel:"Послушать",on:{click:e=>{e.stopPropagation();speak(t)}}});b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';b.append("Послушать");return b}
+function canSpeakRu(){return "speechSynthesis" in window&&typeof SpeechSynthesisUtterance!=="undefined"}
 function speakRu(t){if(window.NotebookVoice)NotebookVoice.stop();if(!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="ru-RU";u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
 const ALPHABET_ART='pics/alphabet-3d.webp';
 const ART_BY_WORD={"apple": 0, "яблоко": 0, "bear": 1, "медведь": 1, "cat": 2, "кошка": 2, "dog": 3, "собака": 3, "elephant": 4, "слон": 4, "flower": 5, "цветок": 5, "goat": 6, "коза": 6, "hippo": 7, "бегемот": 7, "insect": 8, "насекомое": 8, "jelly": 9, "желе": 9, "kangaroo": 10, "кенгуру": 10, "lion": 11, "лев": 11, "monkey": 12, "обезьяна": 12, "nest": 13, "гнездо": 13, "octopus": 14, "осьминог": 14, "penguin": 15, "пингвин": 15, "queen": 16, "королева": 16, "rabbit": 17, "кролик": 17, "snake": 18, "змея": 18, "tiger": 19, "тигр": 19, "umbrella": 20, "зонт": 20, "vulture": 21, "стервятник": 21, "whale": 22, "кит": 22, "fox": 23, "лиса": 23, "yo-yo": 24, "йо-йо": 24, "zebra": 25, "зебра": 25};
@@ -237,10 +285,18 @@ const SYLLABLE_RULE={closed:"Закрытый слог: после гласно�
 const SCRAMBLE=/^[a-z]{3,9}$/i;
 const searchable=t=>[...t.words,...(t.spell||[])].filter(w=>SCRAMBLE.test(clean(w[0])));
 const gappable=t=>t.sentences.filter(x=>x[0].trim().split(/\s+/).length>=3);
-const GROUPS=["Новый материал","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры","Правила и грамматика","Три формы","Past Simple","Ситуации"];
-const VERB_GAMES=["verbcards","forms","typeform","formcheck","verbsort","pastpick","pasttype","choice","sentences","scenechoice","scenelisten","scenebuild","scenespeech"];
+const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры","Правила и грамматика","Три формы","Past Simple","Ситуации"];
+const VERB_GAMES=["story","rule","sayit","city","verbcards","forms","typeform","formcheck","verbsort","pastpick","pasttype","choice","sentences","scenechoice","scenelisten","scenebuild","scenespeech"];
 const groupOf=(g,t)=>t.verbs&&(g.key==="choice"||g.key==="sentences")?8:g.group;
+const LH=()=>({el,picEl,show,speak,canSpeak,shuffle,tone,shake,starsBy,sayBtn});
+const L=()=>window.NotebookLesson;
+const otherSpeech=t=>(window.NotebookSpeech&&NotebookSpeech.supportsTopic(t))||(window.NotebookSituations&&NotebookSituations.supports(t));
 const GAMES=[
+ {key:"explore",group:0,mark:"👀",title:"Смотри и слушай",desc:"Открой картинки и найди их на слух",ok:t=>!!L()&&!t.verbs&&[...t.words,...t.sentences].some(w=>w[2]),run:(t,c)=>L().playExplore(t,c,LH())},
+ {key:"story",group:4,mark:"Story",title:"История",desc:"Прочитай, послушай и ответь",ok:t=>!!L()&&!!L().storyFor(t),run:(t,c)=>L().playStory(t,c,LH())},
+ {key:"rule",group:6,mark:"Rule",title:"Правило",desc:"Объяснение с картинками и проверка",ok:t=>!!L()&&!!L().ruleFor(t),run:(t,c)=>L().playRule(t,c,LH())},
+ {key:"sayit",group:0,mark:"🎤",title:"Скажи вслух",desc:"Назови, что на картинке",ok:t=>!!L()&&!otherSpeech(t)&&(t.sentences.some(s=>s[2])||t.words.some(w=>w[2])),run:(t,c)=>L().playSay(t,c,LH())},
+ {key:"city",group:0,mark:"🏙️",title:"Строим город",desc:"Отвечай верно и строй свой город",ok:t=>!!L()&&L().cityQuestions(t,{shuffle,picEl:()=>null}).length>=5,run:(t,c)=>L().playCity(t,c,LH())},
  ...[["scenechoice","Фото","Ситуация в кадре","Прочитай ситуацию и выбери фразу"],["scenelisten","Listen","Фоторепортёр","Услышь описание и найди кадр"],["scenebuild","Story","Собери описание","Составь фразу и проверь себя"],["scenespeech","Speak","Опиши ситуацию","Запиши голос, прослушай и проверь"]].map(([key,mark,title,desc])=>({key,mark,title,desc,group:9,ok:t=>!!window.NotebookSituations&&NotebookSituations.supports(t)&&(key!=="scenelisten"||canSpeak()),run:(t,c)=>NotebookSituations.play(key,t,c,{el,speak,canSpeak,picEl,tone,shuffle,assemble})})),
  {key:"verbcards",group:0,mark:"Learn",title:"Новая лексика",desc:"Карточки с картинками и тремя формами",ok:t=>(t.verbs||[]).length>0,run:playVerbCards},
  {key:"verbsort",group:7,mark:"cut cut cut",title:"Распредели формы",desc:"На какой глагол похожи формы",ok:t=>(t.verbs||[]).length>=2,run:playSort},
@@ -248,7 +304,7 @@ const GAMES=[
  {key:"pasttype",group:8,mark:"___",title:"Напиши глагол",desc:"Впиши форму Past Simple",ok:t=>(t.verbs||[]).length>0,run:(t,c)=>playPast(t,c,true)},
  ...[ ["adventure","1→24","Ходилка с кубиком","Задания, бонусы и ловушки"], ["tictactoe","X / O","Крестики-нолики","Выполни задание и поставь фишку"], ["maze","Путь","Лабиринт","Найди животных и открой выход"] ].map(([key,mark,title,desc])=>({key,mark,title,desc,group:5,ok:t=>t.id==="fh2-g1-animals"&&!!window.NotebookMiniGames,run:(t,c)=>NotebookMiniGames.play(key,t,c,{el,speak,canSpeak,picEl,tone,shuffle})})),
  {key:"speaking",group:0,mark:"Say",title:"Говорим",desc:"Выбери ответ, запиши и проверь фразу",ok:t=>!!window.NotebookSpeech&&NotebookSpeech.supportsTopic(t),run:(t,c)=>NotebookSpeech.play(t,c,{el,speak,canSpeak,picEl,tone},{onAttempt:r=>window.NotebookMiniGames&&NotebookMiniGames.recordEvidence(t.id,0,2,r.ok,r.assisted)})},
- {key:"cards",group:0,mark:"Learn",title:"Новая лексика",desc:"Смотри, слушай и отмечай, что запомнил",ok:t=>t.words.length+t.sentences.length>0,run:playCards},
+ {key:"cards",group:0,mark:"Learn",title:"Новая лексика",desc:"Смотри, слушай и отмечай, что запомнил",ok:t=>NotebookFlashcards.source(t).length>0,run:playCards},
  {key:"read",group:1,mark:"name",title:"Читаем слова",desc:"Прочитай и проверь себя",ok:t=>rd(t).length>0,run:playRead},
  {key:"syllable",group:1,mark:"cat / name",title:"Какой слог?",desc:"Открытый или закрытый",ok:t=>rd(t).length>=2,run:playSyllable},
  {key:"minimal",group:1,mark:"cap / cape",title:"Услышь разницу",desc:"Какое слово прозвучало",ok:t=>minimalPairs(t).length>=2&&canSpeak(),run:playMinimal},
@@ -296,12 +352,12 @@ const orderedBooks=()=>DATA.books.slice().sort((a,b)=>{const k=x=>{const n=TAB_O
 function topicCover(t){if(t.cover)return t.cover;if(t.derive==="verbs")return t.rows[0][4];const r=[...(t.words||[]),...(t.spell||[]),...(t.sentences||[])].find(x=>x[2]);if(r)return r[2];const g=(t.gaps||[]).find(x=>x[3]);if(g)return g[3];const q=(t.reading||[]).find(x=>x[3]);return q?q[3]:null}
 function coverAlt(t){if(t.derive==="verbs")return t.rows[0][3];const r=(t.words||[]).find(x=>x[2]);return r?r[0]:""}
 function topicCard(t){
- const total=GAMES.filter(g=>g.ok(t)).length,got=GAMES.filter(g=>g.ok(t)&&bestOf(t.id,g.key)>0).length;
+ const steps=lessonSteps(t).filter(x=>!x.extra),got=steps.filter(x=>x.done).length,total=steps.length;
  const em=topicCover(t),letter=t.derive==="verbs";
  return el("button",{class:"topic-card"+(letter?" letter-card":"")+(t.derive==="all-verbs"?" wide":""),type:"button",on:{click:()=>{location.hash=t.id}}},
   letter?el("span",{class:"card-letter"},t.id.slice(3).toUpperCase()):null,
   em?el("span",{class:"card-pic"},picEl(em,coverAlt(t),t)):null,
-  el("span",{class:"card-text"},el("b",null,letter?t.title.split("·").pop().trim():t.title),el("span",{class:"muted small"},got+" из "+total+" игр")));
+  el("span",{class:"card-text"},el("b",null,letter?t.title.split("·").pop().trim():t.title),el("span",{class:"muted small"},got>=total?"Пройдено ✓":"Шаг "+(got+1)+" из "+total)));
 }
 function viewHome(only){
  const books=orderedBooks();
@@ -318,12 +374,25 @@ function viewHome(only){
   alpha?alphabetBoard(alpha):null,
   el("div",{class:"topic-cards"},topics.map(topicCard))),login];
 }
+function lessonSteps(t){
+ const games=GAMES.filter(g=>g.ok(t)&&(!t.verbs||VERB_GAMES.includes(g.key)));
+ if(!L())return [{title:"Игры",hint:"",games}];
+ const steps=L().STEPS.map(st=>({title:st.title,hint:st.hint,games:games.filter(g=>L().stepOf(g.key)===L().STEPS.indexOf(st)).sort((a,b)=>L().orderInStep(a.key)-L().orderInStep(b.key))})).filter(st=>st.games.length);
+ const rest=games.filter(g=>L().stepOf(g.key)<0);
+ if(rest.length)steps.splice(Math.max(0,steps.length-1),0,{title:"Ещё игры",hint:"Дополнительная практика.",games:rest,extra:true});
+ let open=true;
+ steps.forEach(st=>{st.done=st.games.some(g=>bestOf(t.id,g.key)>0);st.open=open||st.extra;if(!st.extra)open=open&&st.done});
+ return steps;
+}
 function viewTopic(t){
  const book=bookById(t.bookId);
- const games=GAMES.filter(g=>g.ok(t)&&(!t.verbs||VERB_GAMES.includes(g.key))).sort((a,b)=>Number(["cards","verbcards"].includes(b.key))-Number(["cards","verbcards"].includes(a.key)));
+ const steps=lessonSteps(t);let num=0;
  return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=t.bookId}}})),
-  el("section",{class:"stack"},el("p",{class:"muted small"},book?book.title:""),el("h1",null,t.title),el("p",null,"Начни с «Новой лексики», затем переходи к тренировке.")),
-  ...GROUPS.map((name,gi)=>{const list=games.filter(g=>groupOf(g,t)===gi);return list.length?el("section",{class:"stack"},el("h3",null,name),el("div",{class:"games"},list.map(g=>el("button",{class:"game",type:"button",on:{click:()=>startGame(t,g)}},el("span",{class:"mark"},g.mark),el("strong",null,g.title),el("small",null,g.desc),el("span",{class:"stars"},starsText(bestOf(t.id,g.key))))))):null}),
+  el("section",{class:"stack"},el("p",{class:"muted small"},book?tabName(book):""),el("h1",null,t.title),el("p",null,"Проходи шаги по порядку: следующий откроется, когда сыграешь хотя бы одну игру в предыдущем.")),
+  el("ol",{class:"lesson-path"},steps.map((st,si)=>{const n=st.extra?"+":String(++num);const prev=steps.slice(0,si).reverse().find(x=>!x.extra);
+   return el("li",{class:"lesson-step"+(st.done?" done":"")+(st.open?"":" locked")+(st.extra?" extra":"")},
+    el("div",{class:"step-head"},el("span",{class:"step-num",ariaHidden:"true"},st.done?"✓":n),el("div",null,el("h3",null,st.title),el("p",{class:"muted small"},st.open?st.hint:"Откроется после шага «"+(prev?prev.title:"")+"»."))),
+    el("div",{class:"games"},st.games.map(g=>el("button",{class:"game",type:"button",disabled:!st.open,on:{click:()=>startGame(t,g)}},el("span",{class:"mark"},g.mark),el("strong",null,g.title),el("small",null,g.desc),el("span",{class:"game-tag "+(L()&&L().FUN.has(g.key)?"fun":"learn")},L()&&L().FUN.has(g.key)?"играем":"учимся"),el("span",{class:"stars"},starsText(bestOf(t.id,g.key)))))))})),
   window.NotebookMiniGames?NotebookMiniGames.summary(t.id,el):null,reportBox(t)]
 }
 function reportBox(t){
@@ -341,7 +410,7 @@ function startGame(t,g){
  const art=new Image();art.src=ALPHABET_ART;
  const stage=el("div",{class:"stack"});
  const bar=el("i",{style:"width:0%"});
- app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),canSpeak()?el("div",null,el("button",{class:"say",type:"button",textContent:"Послушать задание",on:{click:()=>speakRu(g.title+". "+g.desc)}})):null,stage));
+ app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),canSpeakRu()?el("div",null,el("button",{class:"say",type:"button",textContent:"Послушать задание",on:{click:()=>speakRu(g.title+". "+g.desc)}})):null,stage));
  const ctx={stage,onCleanup:fn=>{gameCleanup=fn},alive:()=>my===run,progress:(d,n)=>{bar.style.width=Math.round(100*d/n)+"%"},finish:(stars,line)=>{if(my!==run)return;bar.style.width="100%";showResult(t,g,stars,line,stage)}};
  g.run(t,ctx);
 }
