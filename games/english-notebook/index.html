@@ -158,12 +158,14 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 .opt.line{width:100%;text-align:left;padding:14px;font-size:18px}
 .pic.photo{object-fit:cover;border-radius:10px}
 </style>
-<link rel="stylesheet" href="aulita.css?v=20261106-3">
+<link rel="stylesheet" href="aulita.css?v=20261107-1">
 </head>
 <body>
 <div id="app"><main class="wrap"><h1>Тетрадь</h1><p>Загружаю задания… Если надпись не исчезает, обновите страницу.</p></main></div>
 <script src="art.js?v=20261106-3"></script>
-<script src="speaking.js?v=20261106-4"></script>
+<script src="speaking.js?v=20261107-1"></script>
+<script src="photo-catalog.js?v=20261107-1"></script>
+<script src="situations.js?v=20261107-1"></script>
 <script src="mini-games.js?v=20261106-4"></script>
 <script id="app-code">
 (function(){
@@ -190,7 +192,9 @@ const ART_BY_SYMBOL={"🍎": 0, "🐻": 1, "🐱": 2, "🐶": 3, "🐘": 4, "�
 const PHOTO_FAILED=new Set();let photoSource=null,photoMap={};
 function photoBase(alt){if(photoSource!==DATA){photoSource=DATA;photoMap={};DATA.topics.forEach(t=>(t.verbs||[]).forEach(v=>{photoMap[v[3]]=v[0]}))}return photoMap[alt]}
 function sceneParts(em){if(em.startsWith("freq:"))return [em];if(/\s/.test(em.trim()))return em.trim().split(/\s+/);try{if(window.Intl&&Intl.Segmenter)return [...new Intl.Segmenter().segment(em)].map(x=>x.segment)}catch(e){}return [em]}
-function picEl(em,alt){
+let ACTIVE_TOPIC=null;
+function picEl(em,alt,scope=ACTIVE_TOPIC){
+ const photo=window.NotebookSituations&&NotebookSituations.picture(DATA,scope,em,alt,el);if(photo)return photo;
  if(typeof em==="string"){const parts=sceneParts(em);if(parts.length>1){const base=photoBase(alt);if(base&&!PHOTO_FAILED.has(base)){const ph=el("img",{class:"pic photo",alt:alt||"",src:"irregular-pics/"+base+".jpg",draggable:false});ph.onerror=()=>{PHOTO_FAILED.add(base);ph.replaceWith(picEl(em,""))};return ph}return el("span",{class:"pic scene",role:"img",ariaLabel:alt||""},parts.map(x=>picEl(x,"")))}}
  if(typeof em==="string"&&em.startsWith("freq:")){const v=+em.slice(5),n=Math.round(v/20);return el("span",{class:"pic freq",role:"img",ariaLabel:(alt||"")+" "+v+"%"},el("span",{class:"freq-bars"},[1,2,3,4,5].map(k=>el("i",{class:k<=n?"on":""}))),el("small",null,v+"%"))}
  const base=photoBase(alt);
@@ -228,10 +232,11 @@ const SYLLABLE_RULE={closed:"Закрытый слог: после гласно�
 const SCRAMBLE=/^[a-z]{3,9}$/i;
 const searchable=t=>[...t.words,...(t.spell||[])].filter(w=>SCRAMBLE.test(clean(w[0])));
 const gappable=t=>t.sentences.filter(x=>x[0].trim().split(/\s+/).length>=3);
-const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры","Правила и грамматика","Три формы","Past Simple"];
-const VERB_GAMES=["verbcards","forms","typeform","formcheck","verbsort","pastpick","pasttype","choice","sentences"];
+const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры","Правила и грамматика","Три формы","Past Simple","Ситуации"];
+const VERB_GAMES=["verbcards","forms","typeform","formcheck","verbsort","pastpick","pasttype","choice","sentences","scenechoice","scenelisten","scenebuild","scenespeech"];
 const groupOf=(g,t)=>t.verbs&&(g.key==="choice"||g.key==="sentences")?8:g.group;
 const GAMES=[
+ ...[["scenechoice","Фото","Ситуация в кадре","Прочитай ситуацию и выбери фразу"],["scenelisten","Listen","Фоторепортёр","Услышь описание и найди кадр"],["scenebuild","Story","Собери описание","Составь фразу и проверь себя"],["scenespeech","Speak","Опиши ситуацию","Запиши голос, прослушай и проверь"]].map(([key,mark,title,desc])=>({key,mark,title,desc,group:9,ok:t=>!!window.NotebookSituations&&NotebookSituations.supports(t)&&(key!=="scenelisten"||canSpeak()),run:(t,c)=>NotebookSituations.play(key,t,c,{el,speak,canSpeak,picEl,tone,shuffle,assemble})})),
  {key:"verbcards",group:7,mark:"break → broke",title:"Карточки глаголов",desc:"Картинка, три формы и пример",ok:t=>(t.verbs||[]).length>0,run:playVerbCards},
  {key:"verbsort",group:7,mark:"cut cut cut",title:"Распредели формы",desc:"На какой глагол похожи формы",ok:t=>(t.verbs||[]).length>=2,run:playSort},
  {key:"pastpick",group:8,mark:"broke?",title:"Вставь глагол",desc:"Выбери форму Past Simple",ok:t=>(t.verbs||[]).length>0,run:(t,c)=>playPast(t,c,false)},
@@ -289,7 +294,7 @@ function topicCard(t){
  const em=topicCover(t),letter=t.derive==="verbs";
  return el("button",{class:"topic-card"+(letter?" letter-card":"")+(t.derive==="all-verbs"?" wide":""),type:"button",on:{click:()=>{location.hash=t.id}}},
   letter?el("span",{class:"card-letter"},t.id.slice(3).toUpperCase()):null,
-  em?el("span",{class:"card-pic"},picEl(em,coverAlt(t))):null,
+  em?el("span",{class:"card-pic"},picEl(em,coverAlt(t),t)):null,
   el("span",{class:"card-text"},el("b",null,letter?t.title.split("·").pop().trim():t.title),el("span",{class:"muted small"},got+" из "+total+" игр")));
 }
 function viewHome(only){
@@ -326,7 +331,7 @@ function reportBox(t){
 function startGame(t,g){
  stopGameResources();
  const my=++run;
- TEXT_MODE=!!t.withText;
+ TEXT_MODE=!!t.withText;ACTIVE_TOPIC=t;
  const art=new Image();art.src=ALPHABET_ART;
  const stage=el("div",{class:"stack"});
  const bar=el("i",{style:"width:0%"});
@@ -407,15 +412,21 @@ function assemble(c,rounds,build,hint){
  let i=0,mistakes=0;
  function next(){
   if(!c.alive())return;
-  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
-  const r=build(rounds[i]);let pos=0;
-  const slots=r.tokens.map(()=>el("span",{class:"slot"}," "));
-  let order=shuffle(r.tokens);for(let n=0;n<5&&r.tokens.length>1&&order.join(" ")===r.tokens.join(" ");n++)order=shuffle(r.tokens);
-  const pool=el("div",{class:"pool"},order.map(tok=>{const b=el("button",{type:"button",class:r.lower?"lower":"",textContent:tok,on:{click:()=>{
-    if(tok.toLowerCase()===r.tokens[pos].toLowerCase()){slots[pos].textContent=r.tokens[pos];slots[pos].classList.add("got");pos++;b.style.visibility="hidden";
-     if(pos===r.tokens.length){tone(true);speak(r.say);i++;c.progress(i,rounds.length);setTimeout(next,1100)}}
-    else{tone(false);mistakes++;shake(b)}}}});return b}));
-  c.stage.replaceChildren(el("p",{class:"muted small"},hint+" · "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("span",{class:"big",style:"font-size:clamp(25px,7vw,34px)"},r.ask),r.audio?sayBtn(r.say):null),el("div",{class:"slots"},slots),pool);
+  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибочных проверок: "+mistakes);return}
+  const r=build(rounds[i]),selected=Array(r.tokens.length).fill(null),tokens=[...r.tokens,...(r.extra||[])];let cursor=0,locked=false;const tried=new Set();
+  const feedback=el("p",{class:"assembly-feedback",role:"status",ariaLive:"polite"},"Сначала собери весь ответ. Для замены нажми на букву или слово в ответе.");
+  const slots=r.tokens.map((_,j)=>el("button",{type:"button",class:"slot "+(r.lower?"lower":""),ariaLabel:"Место "+(j+1),on:{click:()=>{if(locked)return;selected[j]=null;cursor=j;paint()}}}," "));
+  const check=el("button",{class:"main",type:"button",textContent:"Проверить",disabled:true,on:{click:()=>{
+   if(locked||selected.some(x=>x===null))return;
+   const wrong=selected.map((id,j)=>tokens[id].toLowerCase()!==r.tokens[j].toLowerCase());
+   if(wrong.some(Boolean)){const key=selected.join(",");if(!tried.has(key)){mistakes++;tried.add(key)}tone(false);slots.forEach((n,j)=>n.classList.toggle("answer-wrong",wrong[j]));feedback.textContent="В выделенных местах есть ошибки. Нажми на них, замени и проверь ещё раз.";return}
+   locked=true;check.disabled=true;slots.forEach(n=>{n.classList.remove("answer-wrong");n.classList.add("got");n.disabled=true});buttons.forEach(n=>n.disabled=true);reset.disabled=true;feedback.textContent="Верно!";tone(true);speak(r.say);i++;c.progress(i,rounds.length);setTimeout(()=>{if(c.alive())next()},1300);
+  }}});
+  const buttons=tokens.map((tok,id)=>el("button",{type:"button",class:r.lower?"lower":"",textContent:tok,on:{click:()=>{if(locked||selected.includes(id))return;let j=selected[cursor]===null?cursor:selected.indexOf(null);if(j<0)return;selected[j]=id;cursor=selected.indexOf(null);paint()}}}));
+  const pool=el("div",{class:"pool"},shuffle(buttons));
+  const reset=el("button",{type:"button",textContent:"Очистить",on:{click:()=>{if(locked)return;selected.fill(null);cursor=0;paint()}}});
+  function paint(){slots.forEach((n,j)=>{n.textContent=selected[j]===null?" ":tokens[selected[j]];n.classList.remove("answer-wrong");n.ariaLabel="Место "+(j+1)+(selected[j]===null?", пусто":", "+tokens[selected[j]]+", нажми для замены")});buttons.forEach((n,id)=>{n.disabled=selected.includes(id);n.style.visibility=selected.includes(id)?"hidden":"visible"});check.disabled=selected.some(x=>x===null);feedback.textContent="Собери ответ и нажми «Проверить»."}
+  c.stage.replaceChildren(el("p",{class:"muted small"},hint+" · "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},el("span",{class:"big",style:"font-size:clamp(25px,7vw,34px)"},r.ask),r.audio?sayBtn(r.say):null),el("div",{class:"slots"},r.prefix?el("span",{class:"slot got"},r.prefix):null,slots),pool,el("div",{class:"row"},check,reset),feedback);
  }
  next();
 }
@@ -510,17 +521,7 @@ function playLadder(t,c){assemble(c,[t.ladder.order,t.ladder.order.slice().rever
 const regularForm=b=>b==="be"?"beed":/e$/.test(b)?b+"d":/[^aeiou]y$/.test(b)?b.slice(0,-1)+"ied":b+"ed";
 const formsLine=v=>v[0]+" — "+v[1]+" — "+v[2];
 function playForms(t,c){
- const rounds=shuffle(t.verbs).slice(0,8);let i=0,mistakes=0;
- function next(){
-  if(!c.alive())return;
-  if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
-  const v=rounds[i],need=[v[1],v[2]];let pos=0;
-  const valid=[...v[1].split("/"),...v[2].split("/")];const extra=[regularForm(v[0]),v[0]+"s",v[0]+"ing"].filter(x=>!valid.includes(x)).slice(0,2);
-  const slots=need.map(()=>el("span",{class:"slot"}," "));
-  const pool=el("div",{class:"pool"},shuffle([...need,...extra]).map(tok=>{const b=el("button",{type:"button",textContent:tok,on:{click:()=>{if(tok===need[pos]){slots[pos].textContent=tok;slots[pos].classList.add("got");pos++;b.style.visibility="hidden";if(pos===2){tone(true);speak(formsLine(v).replace(/—/g,","));i++;c.progress(i,rounds.length);setTimeout(next,1700)}}else{tone(false);mistakes++;shake(b)}}}});return b}));
-  c.stage.replaceChildren(el("p",{class:"muted small"},"Выбери вторую, потом третью форму · "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),el("span",{class:"big"},v[0]),el("span",{class:"muted"},v[3])),el("div",{class:"slots"},el("span",{class:"slot got"},v[0]),slots),pool);
- }
- next();
+ assemble(c,shuffle(t.verbs).slice(0,8),v=>({tokens:[v[1],v[2]],extra:[regularForm(v[0]),v[0]+"s"].filter(x=>![v[1],v[2]].includes(x)),prefix:v[0],ask:el("span",{class:"stack"},picEl(v[4],v[3]),el("span",null,v[3])),say:formsLine(v).replace(/—/g,","),audio:false}),"Собери вторую и третью формы");
 }
 function playTypeForm(t,c){
  const rounds=shuffle(t.verbs).slice(0,8);let i=0,mistakes=0;
@@ -531,7 +532,7 @@ function playTypeForm(t,c){
   const input=el("input",{id:"form-answer",autocomplete:"off",autocapitalize:"none",spellcheck:false,placeholder:"Напиши форму"});
   const note=el("p",{class:"small",role:"status",style:"text-align:center;min-height:1.6em"});
   const btn=el("button",{class:"main",type:"submit",textContent:"Проверить"});
-  const form=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(done){i++;c.progress(i,rounds.length);next();return}const val=input.value.trim().toLowerCase();if(!val)return;const ok=answer.split("/").includes(val);tone(ok);done=true;input.disabled=true;speak(formsLine(v).replace(/—/g,","));if(!ok)mistakes++;note.textContent=(ok?"Верно: ":"Правильно: ")+formsLine(v);btn.textContent="Дальше →";btn.focus()}}},input,note,el("div",null,btn));
+  const form=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(done){i++;c.progress(i,rounds.length);next();return}const val=input.value.trim().toLowerCase();if(!val)return;const ok=answer.split("/").includes(val);tone(ok);if(!ok){mistakes++;note.textContent="Проверь форму и исправь ответ.";input.focus();return}done=true;input.disabled=true;speak(formsLine(v).replace(/—/g,","));note.textContent="Верно: "+formsLine(v);btn.textContent="Дальше →";btn.focus()}}},input,note,el("div",null,btn));
   c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),el("span",{class:"big"},v[0]),el("span",{class:"muted"},(which===1?"Вторая форма":"Третья форма")+" · "+v[3])),form);
   input.focus();
  }
@@ -586,7 +587,7 @@ function playPast(t,c,typed){
   }else{
    const input=el("input",{id:"past-answer",autocomplete:"off",autocapitalize:"none",spellcheck:false,placeholder:"Форма Past Simple"});
    let tried=false;
-   answer=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(over)return;const val=input.value.trim().toLowerCase();if(!val)return;if(ok.includes(val)){input.disabled=true;note.textContent="Верно!";win()}else{tone(false);shake(input);if(!tried){tried=true;mistakes++;note.textContent="Подумай ещё. Это неправильный глагол."}else{note.textContent="Правильно: "+pv;input.value=pv}}}}},input,el("div",null,el("button",{class:"main",type:"submit",textContent:"Проверить"})));
+   answer=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(over)return;const val=input.value.trim().toLowerCase();if(!val)return;if(ok.includes(val)){input.disabled=true;note.textContent="Верно!";win()}else{tone(false);shake(input);if(!tried){tried=true;mistakes++;note.textContent="Подумай ещё. Это неправильный глагол."}else{note.textContent="Проверь форму ещё раз. Ответ можно исправить."}}}}},input,el("div",null,el("button",{class:"main",type:"submit",textContent:"Проверить"})));
    setTimeout(()=>input.focus(),0);
   }
   c.stage.replaceChildren(el("p",{class:"muted small"},"Задание "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),q,el("span",{class:"muted"},"("+v[0]+") · "+v[6])),answer,note);
@@ -912,6 +913,7 @@ function editor(){
 }
 /* ---------- router ---------- */
 function render(){
+ ACTIVE_TOPIC=null;
  stopGameResources();
  const h=location.hash.replace(/^#/,"");run++;
  let view;
