@@ -81,7 +81,7 @@ function play(t,c,h,options={}){
  }
  async function begin(){
   if(current||closed||!c.alive())return;version++;const s={version,phrase:target().answer,alternatives:[],chunks:[],stream:null,recorder:null,recognition:null,stopping:false,cancelled:false,ended:!Recognition,blobReady:false,finalised:false};current=s;setBusy(true);mic.disabled=true;
-  sayFeedback('Разреши доступ к микрофону, если браузер спросит.');try{if(global.speechSynthesis)speechSynthesis.cancel();audio.pause();const stream=await navigator.mediaDevices.getUserMedia({audio:true});s.stream=stream;
+  sayFeedback('Разреши доступ к микрофону, если браузер спросит.');try{if(global.NotebookVoice)global.NotebookVoice.stop();else if(global.speechSynthesis)speechSynthesis.cancel();audio.pause();const stream=await navigator.mediaDevices.getUserMedia({audio:true});s.stream=stream;
    if(closed||!c.alive()||current!==s||s.cancelled){stopTracks(s);return}
    const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(m=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m));s.recorder=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
    s.recorder.ondataavailable=e=>{if(e.data&&e.data.size)s.chunks.push(e.data)};
