@@ -261,8 +261,8 @@ function cityQuestions(t,h){
   if(q.type==="listen")return{ask:"Послушай и выбери картинку.",listen:q.w[0],options:pickOptions(h,q.w,words.filter(w=>w[1]!==q.w[1]),3),answer:q.w,pic:true,say:q.w[0]};
   if(q.type==="gap")return{prompt:[q.g[3]?h.picEl(q.g[3],q.g[0]):null],gap:q.g[0],ask:"Выбери, что пропущено.",options:h.shuffle([q.g[1],...q.g[2]].slice(0,3)),answer:q.g[1],say:q.g[0].replace("___",q.g[1])};
   if(q.type==="choice")return{prompt:[q.x[2]?h.picEl(q.x[2],""):null],ask:"Какое предложение верное?",options:h.shuffle([q.x[0],...q.x[1]]),answer:q.x[0],say:q.x[0],line:true};
-  if(q.type==="form"){const v=q.v,ok=v[q.k].split("/")[0];const wrong=[v[q.k===1?2:1].split("/")[0],regular(v[0]),v[0]+"s"].filter(x=>!v[q.k].split("/").includes(x));return{prompt:[h.picEl(v[4],v[3])],gap:q.k===1?v[0]+" — ___ — "+v[2]:v[0]+" — "+v[1]+" — ___",ask:(q.k===1?"2-я":"3-я")+" форма",options:pickOptions(h,ok,wrong,3),answer:ok,say:v[0]+", "+v[1]+", "+v[2]}}
-  if(q.type==="past"){const v=q.v,ok=v[1].split("/")[0];return{prompt:[h.picEl(v[4],v[3])],gap:v[5].replace(new RegExp("\\b"+ok+"\\b"),"___")+" ("+v[0]+")",ask:"Past Simple",options:pickOptions(h,ok,[v[0],regular(v[0]),v[2].split("/")[0]].filter(x=>!v[1].split("/").includes(x)),3),answer:ok,say:v[5]}}
+  if(q.type==="form"){const v=q.v,ok=v[q.k].split("/")[0];const wrong=global.NotebookVerbs?global.NotebookVerbs.wrongForms(v,q.k):[v[q.k===1?2:1].split("/")[0],regular(v[0]),v[0]+"s"].filter(x=>!v[q.k].split("/").includes(x));return{prompt:[h.picEl(v[4],v[3])],gap:v[0]+" → ___",ask:(q.k===1?"2-я":"3-я")+" форма",options:pickOptions(h,ok,wrong,4),answer:ok,say:v[0]+", "+v[1]+", "+v[2]}}
+  if(q.type==="past"){const v=q.v,ok=v[1].split("/")[0],wrong=global.NotebookVerbs?global.NotebookVerbs.wrongForms(v,1):[v[0],regular(v[0]),v[2].split("/")[0]].filter(x=>!v[1].split("/").includes(x));return{prompt:[h.picEl(v[4],v[3])],gap:v[5].replace(new RegExp("\\b"+ok+"\\b"),"___")+" ("+v[0]+")",ask:"Past Simple",options:pickOptions(h,ok,wrong,4),answer:ok,say:v[5]}}
   const s=q.s;return{prompt:[h.picEl(s[2],s[1])],ask:"Какая фраза подходит к картинке?",options:pickOptions(h,s[0],sents.map(x=>x[0]),3),answer:s[0],say:s[0],line:true};
  });
 }
@@ -340,11 +340,11 @@ function playCity(t,c,h){
  function place(k){if(!pending||k<0||grid[k])return;const b={id:pending.id,v:placed.length,i:k%N,j:Math.floor(k/N),at:performance.now()};grid[k]=b;placed.push(b);h.tone(true);
   if(b.id!=="tree")walkers.push({from:[b.i,b.j],to:[b.i,b.j],t:1,c:["#e63946","#457b9d","#2a9d8f","#f4a261","#9b5de5"][walkers.length%5]});
   coins-=pending.cost;pending=null;hover=-1;paintHud();n++;c.progress(n,qs.length);setTimeout(ask,350)}
- function paintHud(){hud.replaceChildren(el("span",null,"Вопрос "+Math.min(n+1,qs.length)+" из "+qs.length),el("span",null,"🪙 "+coins),el("span",null,"Зданий: "+placed.length))}
+ function paintHud(){hud.replaceChildren(el("span",null,"Вопрос "+Math.min(n+1,qs.length)+" из "+qs.length),el("span",null,"Материалы: "+coins),el("span",null,"Зданий: "+placed.length))}
  function choose(){
   const free=grid.filter(x=>!x).length;if(!free){n++;setTimeout(ask,200);return}
   const opts=BUILDINGS.filter(b=>b.cost<=coins);
-  panel.replaceChildren(el("p",{class:"city-say"},"Верно! Что построим?"),el("div",{class:"city-builds"},BUILDINGS.map(b=>{const can=b.cost<=coins;const icon=el("canvas",{width:120,height:120,class:"city-icon"});drawIcon(icon,b);return el("button",{type:"button",class:"city-build",disabled:!can,on:{click:()=>{pending=b;panel.replaceChildren(el("p",{class:"city-say"},"Нажми на свободную клетку в городе."),el("button",{type:"button",class:"ghost",textContent:"Поставить в любое место",on:{click:()=>{const freeK=grid.map((x,k)=>x?-1:k).filter(k=>k>=0);place(freeK[Math.floor(Math.random()*freeK.length)])}}}))}}},icon,el("span",null,b.name),el("small",null,b.cost?"🪙 "+b.cost:"бесплатно"))})));
+  panel.replaceChildren(el("p",{class:"city-say"},"Верно! Что построим?"),el("div",{class:"city-builds"},BUILDINGS.map(b=>{const can=b.cost<=coins;const icon=el("canvas",{width:120,height:120,class:"city-icon"});drawIcon(icon,b);return el("button",{type:"button",class:"city-build",disabled:!can,on:{click:()=>{pending=b;panel.replaceChildren(el("p",{class:"city-say"},"Нажми на свободную клетку в городе."),el("button",{type:"button",class:"ghost",textContent:"Поставить в любое место",on:{click:()=>{const freeK=grid.map((x,k)=>x?-1:k).filter(k=>k>=0);place(freeK[Math.floor(Math.random()*freeK.length)])}}}))}}},icon,el("span",null,b.name),el("small",null,b.cost?b.cost+" материалов":"бесплатно"))})));
   if(!opts.length){n++;setTimeout(ask,200)}
  }
  function drawIcon(cv,b){const g=cv.getContext("2d");const real=ctx,ktw=tw,kth=th;ctx=g;tw=78;th=39;g.clearRect(0,0,120,120);drawBuilding({id:b.id,v:1},60,98,1);ctx=real;tw=ktw;th=kth}

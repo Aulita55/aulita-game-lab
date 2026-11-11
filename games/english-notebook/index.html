@@ -205,6 +205,7 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 .pic.photo{object-fit:cover;border-radius:10px}
 </style>
 <link rel="stylesheet" href="aulita.css?v=20261107-1">
+<link rel="stylesheet" href="practice-city.css?v=20261111-1">
 </head>
 <body>
 <div id="app"><main class="wrap"><h1>Тетрадь</h1><p>Загружаю задания… Если надпись не исчезает, обновите страницу.</p></main></div>
@@ -217,7 +218,9 @@ summary{font-weight:800;cursor:pointer;color:var(--ink)}
 <script src="speaking.js?v=20261107-2"></script>
 <script src="photo-catalog.js?v=20261107-1"></script>
 <script src="situations.js?v=20261107-1"></script>
-<script src="lesson.js?v=20261107-2"></script>
+<script src="verb-practice.js?v=20261111-1"></script>
+<script src="cat-city.js?v=20261111-1"></script>
+<script src="lesson.js?v=20261111-1"></script>
 <script src="mini-games.js?v=20261106-4"></script>
 <script id="app-code">
 (function(){
@@ -286,9 +289,9 @@ const SCRAMBLE=/^[a-z]{3,9}$/i;
 const searchable=t=>[...t.words,...(t.spell||[])].filter(w=>SCRAMBLE.test(clean(w[0])));
 const gappable=t=>t.sentences.filter(x=>x[0].trim().split(/\s+/).length>=3);
 const GROUPS=["Учим","Читаем","Сопоставляем","Играем со словами","Играем с фразами","Мини-игры","Правила и грамматика","Три формы","Past Simple","Ситуации"];
-const VERB_GAMES=["story","rule","sayit","city","verbcards","forms","typeform","formcheck","verbsort","pastpick","pasttype","choice","sentences","scenechoice","scenelisten","scenebuild","scenespeech"];
+const VERB_GAMES=["story","rule","sayit","city","verbcards","forms","typeform","formcheck","verbsort","pastpick","pasttype","choice","sentences","scenechoice","scenelisten","scenebuild","scenespeech","verbcontrast","verbedit","verbdictation","verbrecall","verbreview"];
 const groupOf=(g,t)=>t.verbs&&(g.key==="choice"||g.key==="sentences")?8:g.group;
-const LH=()=>({el,picEl,show,speak,canSpeak,shuffle,tone,shake,starsBy,sayBtn});
+const LH=()=>({el,picEl,show,speak,canSpeak,shuffle,tone,shake,starsBy,sayBtn,speakForm:(b,k)=>window.NotebookVoice?.speakForm(b,k)||false});
 const L=()=>window.NotebookLesson;
 const otherSpeech=t=>(window.NotebookSpeech&&NotebookSpeech.supportsTopic(t))||(window.NotebookSituations&&NotebookSituations.supports(t));
 const GAMES=[
@@ -296,7 +299,8 @@ const GAMES=[
  {key:"story",group:4,mark:"Story",title:"История",desc:"Прочитай, послушай и ответь",ok:t=>!!L()&&!!L().storyFor(t),run:(t,c)=>L().playStory(t,c,LH())},
  {key:"rule",group:6,mark:"Rule",title:"Правило",desc:"Объяснение с картинками и проверка",ok:t=>!!L()&&!!L().ruleFor(t),run:(t,c)=>L().playRule(t,c,LH())},
  {key:"sayit",group:0,mark:"🎤",title:"Скажи вслух",desc:"Назови, что на картинке",ok:t=>!!L()&&!otherSpeech(t)&&(t.sentences.some(s=>s[2])||t.words.some(w=>w[2])),run:(t,c)=>L().playSay(t,c,LH())},
- {key:"city",group:0,mark:"🏙️",title:"Строим город",desc:"Отвечай верно и строй свой город",ok:t=>!!L()&&L().cityQuestions(t,{shuffle,picEl:()=>null}).length>=5,run:(t,c)=>L().playCity(t,c,LH())},
+ {key:"city",group:0,mark:"🏙️",title:"Городской квест",desc:"Финальная игра с вопросами и строительством",ok:t=>!!L()&&L().cityQuestions(t,{shuffle,picEl:()=>null}).length>=5,run:(t,c)=>L().playCity(t,c,LH())},
+ ...[["verbcontrast","au / ou","Буква решает","Выбери форму среди похожих написаний"],["verbedit","Edit","Редактор глаголов","Найди и исправь ошибку в цепочке"],["verbdictation","Listen","Мини-диктант","Услышь форму и запиши без вариантов"],["verbrecall","Recall","Три формы по памяти","Вспомни и напиши обе формы"],["verbreview","Again","Снова в деле","Вернись к сложным формам в разных заданиях"]].map(([key,mark,title,desc])=>({key,mark,title,desc,group:7,ok:t=>!!window.NotebookVerbs&&(t.verbs||[]).length>0&&(key!=="verbdictation"||!!window.NotebookVoice?.available()),run:(t,c)=>NotebookVerbs.play(key,t,c,LH())})),
  ...[["scenechoice","Фото","Ситуация в кадре","Прочитай ситуацию и выбери фразу"],["scenelisten","Listen","Фоторепортёр","Услышь описание и найди кадр"],["scenebuild","Story","Собери описание","Составь фразу и проверь себя"],["scenespeech","Speak","Опиши ситуацию","Запиши голос, прослушай и проверь"]].map(([key,mark,title,desc])=>({key,mark,title,desc,group:9,ok:t=>!!window.NotebookSituations&&NotebookSituations.supports(t)&&(key!=="scenelisten"||canSpeak()),run:(t,c)=>NotebookSituations.play(key,t,c,{el,speak,canSpeak,picEl,tone,shuffle,assemble})})),
  {key:"verbcards",group:0,mark:"Learn",title:"Новая лексика",desc:"Карточки с картинками и тремя формами",ok:t=>(t.verbs||[]).length>0,run:playVerbCards},
  {key:"verbsort",group:7,mark:"cut cut cut",title:"Распредели формы",desc:"На какой глагол похожи формы",ok:t=>(t.verbs||[]).length>=2,run:playSort},
@@ -332,6 +336,7 @@ const GAMES=[
 /* ---------- views ---------- */
 function header(){
  const controls=[];
+ if(window.NotebookTown)controls.push(NotebookTown.link(el));
  if(window.NotebookVoice?.available())controls.push(el("button",{class:"ghost",type:"button",textContent:"Британский голос",title:"Послушать пример ИИ-озвучки",on:{click:()=>speak("Hello! Let’s learn English together.")}}));
  controls.push(el('button',{class:'ghost',type:'button',textContent:'На весь экран',on:{click:async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else toast('Полноэкранный режим недоступен в этом браузере.')}catch(e){toast('Не удалось открыть полный экран.')}}}}));
  if(token)controls.push(el('button',{type:'button',textContent:location.hash==='#studio'?'Как видит ученик':'Кабинет учителя',on:{click:()=>{location.hash=location.hash==='#studio'?'':'studio'}}}));
@@ -375,10 +380,11 @@ function viewHome(only){
   el("div",{class:"topic-cards"},topics.map(topicCard))),login];
 }
 function lessonSteps(t){
- const games=GAMES.filter(g=>g.ok(t)&&(!t.verbs||VERB_GAMES.includes(g.key)));
+ const games=GAMES.filter(g=>g.key!=="verbreview"&&g.ok(t)&&(!t.verbs||VERB_GAMES.includes(g.key)));
  if(!L())return [{title:"Игры",hint:"",games}];
- const steps=L().STEPS.map(st=>({title:st.title,hint:st.hint,games:games.filter(g=>L().stepOf(g.key)===L().STEPS.indexOf(st)).sort((a,b)=>L().orderInStep(a.key)-L().orderInStep(b.key))})).filter(st=>st.games.length);
- const rest=games.filter(g=>L().stepOf(g.key)<0);
+ const path=t.verbs&&window.NotebookVerbs?NotebookVerbs.STEPS:L().STEPS;
+ const steps=path.map(st=>({title:st.title,hint:st.hint,games:games.filter(g=>st.keys.includes(g.key)).sort((a,b)=>st.keys.indexOf(a.key)-st.keys.indexOf(b.key))})).filter(st=>st.games.length);
+ const rest=games.filter(g=>!path.some(st=>st.keys.includes(g.key)));
  if(rest.length)steps.splice(Math.max(0,steps.length-1),0,{title:"Ещё игры",hint:"Дополнительная практика.",games:rest,extra:true});
  let open=true;
  steps.forEach(st=>{st.done=st.games.some(g=>bestOf(t.id,g.key)>0);st.open=open||st.extra;if(!st.extra)open=open&&st.done});
@@ -387,8 +393,11 @@ function lessonSteps(t){
 function viewTopic(t){
  const book=bookById(t.bookId);
  const steps=lessonSteps(t);let num=0;
- return [el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=t.bookId}}})),
+ const due=t.verbs&&window.NotebookVerbs?NotebookVerbs.createReview().due(t.verbs).length:0;
+ return [el("nav",{class:"top topic-tools"},el("button",{class:"ghost",type:"button",textContent:"← Все темы",on:{click:()=>{location.hash=t.bookId}}}),window.NotebookTown?NotebookTown.link(el,t.id):null),
   el("section",{class:"stack"},el("p",{class:"muted small"},book?tabName(book):""),el("h1",null,t.title),el("p",null,"Проходи шаги по порядку: следующий откроется, когда сыграешь хотя бы одну игру в предыдущем.")),
+  el("p",{class:"practice-reward-hint"},"Каждое завершённое задание приносит 5–15 игровых монет. Потрать их в магазине на свой город."),
+  due?el("section",{class:"verb-review-banner"},el("div",null,el("b",null,"Пора вернуться к сложным формам"),el("p",null,"К повторению: "+due+". Задания будут разными.")),el("button",{type:"button",class:"main",textContent:"Повторить",on:{click:()=>startGame(t,GAMES.find(g=>g.key==="verbreview"))}})):null,
   el("ol",{class:"lesson-path"},steps.map((st,si)=>{const n=st.extra?"+":String(++num);const prev=steps.slice(0,si).reverse().find(x=>!x.extra);
    return el("li",{class:"lesson-step"+(st.done?" done":"")+(st.open?"":" locked")+(st.extra?" extra":"")},
     el("div",{class:"step-head"},el("span",{class:"step-num",ariaHidden:"true"},st.done?"✓":n),el("div",null,el("h3",null,st.title),el("p",{class:"muted small"},st.open?st.hint:"Откроется после шага «"+(prev?prev.title:"")+"»."))),
@@ -405,22 +414,24 @@ function reportBox(t){
 /* ---------- game frame ---------- */
 function startGame(t,g){
  stopGameResources();
- const my=++run;
+ const my=++run;let finished=false;
  TEXT_MODE=!!t.withText;ACTIVE_TOPIC=t;
  const art=new Image();art.src=ALPHABET_ART;
  const stage=el("div",{class:"stack"});
  const bar=el("i",{style:"width:0%"});
- app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),el("span",{class:"muted small"},t.title)),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),canSpeakRu()?el("div",null,el("button",{class:"say",type:"button",textContent:"Послушать задание",on:{click:()=>speakRu(g.title+". "+g.desc)}})):null,stage));
- const ctx={stage,onCleanup:fn=>{gameCleanup=fn},alive:()=>my===run,progress:(d,n)=>{bar.style.width=Math.round(100*d/n)+"%"},finish:(stars,line)=>{if(my!==run)return;bar.style.width="100%";showResult(t,g,stars,line,stage)}};
+ app.replaceChildren(el("main",{class:"wrap"},el("nav",{class:"top topic-tools"},el("button",{class:"ghost",type:"button",textContent:"← К играм",on:{click:()=>{run++;render()}}}),window.NotebookTown?NotebookTown.link(el,t.id):null),el("span",{class:"muted small"},t.title),el("div",{class:"bar",role:"presentation"},bar),el("h2",null,g.title),el("p",{class:"practice-reward-hint"},"Заверши задание и получи до 15 игровых монет."),canSpeakRu()?el("div",null,el("button",{class:"say",type:"button",textContent:"Послушать задание",on:{click:()=>speakRu(g.title+". "+g.desc)}})):null,stage));
+ const ctx={stage,onCleanup:fn=>{gameCleanup=fn},alive:()=>my===run&&!finished,progress:(d,n)=>{if(my===run&&!finished)bar.style.width=Math.min(100,Math.round(100*d/Math.max(1,n)))+"%"},finish:(stars,line)=>{if(my!==run||finished)return;finished=true;stopGameResources();bar.style.width="100%";showResult(t,g,stars,line,stage)}};
  g.run(t,ctx);
 }
 function starsBy(mistakes,total){const r=mistakes/Math.max(total,1);return r===0?3:r<=.34?2:1}
 function showResult(t,g,stars,line,stage){
  if(stars>bestOf(t.id,g.key))store.set(bestKey(t.id,g.key),String(stars));
+ let reward=null;
+ if(window.NotebookTown){try{const r=NotebookTown.wallet().earn(t.id+":"+g.key,stars);reward=el("div",{class:"practice-earned",role:"status"},el("b",null,r.amount?"+"+r.amount+" игровых монет":"Сегодняшняя награда за этот результат уже получена"),el("span",null,"В кошельке: "+r.state.coins+". За улучшение результата получишь разницу; завтра награда обновится."));document.querySelectorAll('[data-town-balance]').forEach(n=>n.textContent=String(r.state.coins))}catch(e){reward=el("p",{role:"alert"},e.message)}}
  const words=["","Ещё разок?","Хорошо!","Отлично!"];
  const s=el("div",{class:"bigstars",ariaLabel:"Звёзд: "+stars});s.append("★".repeat(stars));s.append(el("span",null,"★".repeat(3-stars)));
  tone(true);
- stage.replaceChildren(el("p",{class:"note"},words[stars]),s,el("p",{class:"muted",style:"text-align:center"},line),
+ stage.replaceChildren(el("p",{class:"note"},words[stars]),s,el("p",{class:"muted",style:"text-align:center"},line),reward,window.NotebookTown?NotebookTown.link(el,t.id):null,
   el("div",{class:"row",style:"justify-content:center"},el("button",{class:"main",type:"button",textContent:"Играть ещё раз",on:{click:()=>startGame(t,g)}}),el("button",{type:"button",textContent:"Другая игра",on:{click:()=>{run++;render()}}})),reportBox(t));
 }
 
@@ -546,10 +557,10 @@ function playMinimal(t,c){
 function verbSet(rows){
  const reg=regularForm,uniq=(ok,list,valid)=>{const out=[];for(const x of list)if(x!==ok&&!out.includes(x)&&!String(ok).split("/").includes(x)&&!String(valid||"").split("/").includes(x))out.push(x);return out.slice(0,2)};
  const r={words:[],verbs:[],sentences:[],gaps:[],choice:[],qa:[],sort:{ask:"На какой глагол похожи его формы?",groups:["cut – cut – cut","buy – bought – bought","come – came – come","другие"],items:[]}};
- for(const [b,pa,pp,ru,em,en,enRu] of rows){const pv=pa.split("/")[0],re=new RegExp("\\b"+pv+"\\b");
+ for(const [b,pa,pp,ru,em,en,enRu] of rows){const pv=pa.split("/")[0],re=new RegExp("\\b"+pv+"\\b"),v=[b,pa,pp],wrong=k=>window.NotebookVerbs?NotebookVerbs.wrongForms(v,k):uniq(v[k],[reg(b),v[k===1?2:1],b+"s"]);
   r.verbs.push([b,pa,pp,ru,em,en,enRu]);r.words.push([b,ru,em]);r.sentences.push([en,enRu,em]);
-  r.gaps.push([b+" — ___ — "+pp,pa,uniq(pa,[reg(b),pp,b+"s"]),em],[b+" — "+pa+" — ___",pp,uniq(pp,[reg(b),pa,b+"s",b+"ing"]),em],[en.replace(re,"___"),pv,uniq(pv,[b,reg(b),b+"s"],pa),em]);
-  r.choice.push([en,uniq(pv,[pp.split("/")[0],b,reg(b),b+"s"],pa).map(x=>en.replace(re,x)),em]);r.qa.push([b,pa]);r.sort.items.push([b,b===pa&&pa===pp?0:pa===pp?1:b===pp?2:3,em])}
+  r.gaps.push([b+" → ___ (2-я форма)",pv,wrong(1),em],[b+" → ___ (3-я форма)",pp.split("/")[0],wrong(2),em],[en.replace(re,"___"),pv,wrong(1),em]);
+  r.choice.push([en,wrong(1).map(x=>en.replace(re,x)),em]);r.qa.push([b,pa]);r.sort.items.push([b,b===pa&&pa===pp?0:pa===pp?1:b===pp?2:3,em])}
  return r;
 }
 function expandVerbs(data){const own=data.topics.filter(t=>t.derive==="verbs");data.topics.forEach(t=>{if(t.derive==="verbs")Object.assign(t,verbSet(t.rows));else if(t.derive==="all-verbs")Object.assign(t,verbSet(own.filter(x=>x.bookId===t.bookId).flatMap(x=>x.rows)))});return data}
@@ -581,7 +592,7 @@ function playLadder(t,c){assemble(c,[t.ladder.order,t.ladder.order.slice().rever
 const regularForm=b=>b==="be"?"beed":/e$/.test(b)?b+"d":/[^aeiou]y$/.test(b)?b.slice(0,-1)+"ied":b+"ed";
 const formsLine=v=>v[0]+" — "+v[1]+" — "+v[2];
 function playForms(t,c){
- assemble(c,shuffle(t.verbs).slice(0,8),v=>({tokens:[v[1],v[2]],extra:[regularForm(v[0]),v[0]+"s"].filter(x=>![v[1],v[2]].includes(x)),prefix:v[0],ask:el("span",{class:"stack"},picEl(v[4],v[3]),el("span",null,v[3])),say:formsLine(v).replace(/—/g,","),audio:false}),"Собери вторую и третью формы");
+ assemble(c,shuffle(t.verbs).slice(0,8),v=>{const tokens=[v[1].split('/')[0],v[2].split('/')[0]],valid=window.NotebookVerbs?[...NotebookVerbs.accepted(v,1),...NotebookVerbs.accepted(v,2)]:tokens;const extra=window.NotebookVerbs?[...new Set([...NotebookVerbs.wrongForms(v,1),...NotebookVerbs.wrongForms(v,2)])].filter(x=>!valid.includes(x)).slice(0,4):[regularForm(v[0]),v[0]+"s"].filter(x=>!tokens.includes(x));return{tokens,extra,prefix:v[0],ask:el("span",{class:"stack"},picEl(v[4],v[3]),el("span",null,v[3])),say:formsLine(v).replace(/—/g,","),audio:false}},"Собери вторую и третью формы");
 }
 function playTypeForm(t,c){
  const rounds=shuffle(t.verbs).slice(0,8);let i=0,mistakes=0;
@@ -592,7 +603,7 @@ function playTypeForm(t,c){
   const input=el("input",{id:"form-answer",autocomplete:"off",autocapitalize:"none",spellcheck:false,placeholder:"Напиши форму"});
   const note=el("p",{class:"small",role:"status",style:"text-align:center;min-height:1.6em"});
   const btn=el("button",{class:"main",type:"submit",textContent:"Проверить"});
-  const form=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(done){i++;c.progress(i,rounds.length);next();return}const val=input.value.trim().toLowerCase();if(!val)return;const ok=answer.split("/").includes(val);tone(ok);if(!ok){mistakes++;note.textContent="Проверь форму и исправь ответ.";input.focus();return}done=true;input.disabled=true;speak(formsLine(v).replace(/—/g,","));note.textContent="Верно: "+formsLine(v);btn.textContent="Дальше →";btn.focus()}}},input,note,el("div",null,btn));
+  const form=el("form",{class:"stack",on:{submit:e=>{e.preventDefault();if(done){i++;c.progress(i,rounds.length);next();return}const val=input.value.trim().toLowerCase();if(!val)return;const ok=window.NotebookVerbs?NotebookVerbs.isCorrect(v,which,val):answer.split("/").includes(val);tone(ok);if(!ok){mistakes++;note.textContent="Проверь форму и исправь ответ.";input.focus();return}done=true;input.disabled=true;speak(formsLine(v).replace(/—/g,","));note.textContent="Верно: "+formsLine(v);btn.textContent="Дальше →";btn.focus()}}},input,note,el("div",null,btn));
   c.stage.replaceChildren(el("p",{class:"muted small"},"Слово "+(i+1)+" из "+rounds.length),el("div",{class:"prompt"},picEl(v[4],v[3]),el("span",{class:"big"},v[0]),el("span",{class:"muted"},(which===1?"Вторая форма":"Третья форма")+" · "+v[3])),form);
   input.focus();
  }
@@ -603,7 +614,7 @@ function playFormCheck(t,c){
  function next(){
   if(!c.alive())return;
   if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
-  const v=rounds[i],truth=Math.random()<.5;const shown=v.slice(0,3);if(!truth){const k=Math.random()<.5?1:2;shown[k]=[regularForm(v[0]),v[0]+"s",v[0]+"ing"].find(x=>!v[k].split("/").includes(x))}const same=shown[1]===v[1]&&shown[2]===v[2];const line=shown.join(" — ");let over=false;
+  const v=rounds[i],truth=Math.random()<.5;const shown=v.slice(0,3).map(x=>x.split('/')[0]);if(!truth){const k=Math.random()<.5?1:2;shown[k]=window.NotebookVerbs?NotebookVerbs.wrongForms(v,k,1)[0]:regularForm(v[0])}const same=shown.slice(1).every((x,j)=>window.NotebookVerbs?NotebookVerbs.isCorrect(v,j+1,x):v[j+1].split('/').includes(x));const line=shown.join(" — ");let over=false;
   const answer=(val,b)=>{if(over)return;over=true;const ok=val===same;tone(ok);if(!ok){mistakes++;shake(b)}note.textContent=ok?"Верно!":"Правильно: "+formsLine(v);b.classList.add(ok?"ok":"no");speak(formsLine(v).replace(/—/g,","));i++;c.progress(i,rounds.length);setTimeout(next,ok?1100:2600)};
   const note=el("p",{class:"small",role:"status",style:"text-align:center;min-height:1.6em"});
   const yes=el("button",{class:"opt",type:"button",textContent:"✓ Верно",on:{click:()=>answer(true,yes)}}),no=el("button",{class:"opt",type:"button",textContent:"✗ Ошибка",on:{click:()=>answer(false,no)}});
@@ -617,7 +628,7 @@ function playPast(t,c,typed){
  function next(){
   if(!c.alive())return;
   if(i>=rounds.length){c.finish(starsBy(mistakes,rounds.length),"Ошибок: "+mistakes);return}
-  const v=rounds[i],ok=v[1].split("/"),pv=ok[0],parts=v[5].split(new RegExp("\\b"+pv+"\\b"));
+  const v=rounds[i],pv=v[1].split("/")[0],ok=v[0]==="be"?[pv]:(window.NotebookVerbs?NotebookVerbs.accepted(v,1):v[1].split("/")),parts=v[5].split(new RegExp("\\b"+pv+"\\b"));
   const gap=el("u",null,"\u00a0\u00a0\u00a0\u00a0\u00a0");
   const q=el("p",{class:"gapq"},parts[0],gap,parts.slice(1).join(pv));
   const note=el("p",{class:"small",role:"status",style:"text-align:center;min-height:1.6em"});
@@ -625,7 +636,7 @@ function playPast(t,c,typed){
   const win=()=>{over=true;tone(true);gap.textContent=pv;speak(v[5]);i++;c.progress(i,rounds.length);setTimeout(next,1500)};
   let answer;
   if(!typed){
-   const wrong=[v[2].split("/")[0],v[0],regularForm(v[0]),v[0]+"s"].filter((x,k,a)=>!ok.includes(x)&&a.indexOf(x)===k).slice(0,2);
+   const wrong=window.NotebookVerbs?NotebookVerbs.wrongForms(v,1):[v[2].split("/")[0],v[0],regularForm(v[0]),v[0]+"s"].filter((x,k,a)=>!ok.includes(x)&&a.indexOf(x)===k).slice(0,2);
    answer=el("div",{class:"opts"},shuffle([pv,...wrong]).map(o=>{const b=el("button",{class:"opt",type:"button",textContent:o,on:{click:()=>{if(over)return;if(ok.includes(o)){b.classList.add("ok");win()}else{tone(false);mistakes++;b.classList.add("no");b.disabled=true;shake(b)}}}});return b}));
   }else{
    const input=el("input",{id:"past-answer",autocomplete:"off",autocapitalize:"none",spellcheck:false,placeholder:"Форма Past Simple"});
@@ -961,6 +972,7 @@ function render(){
  const h=location.hash.replace(/^#/,"");run++;
  let view;
  if(h==="studio")view=teacherReady?viewStudio():viewLogin();
+ else if(h==="cat-city"&&window.NotebookTown){const city=NotebookTown.view(el);gameCleanup=city.townCleanup||null;view=[city]}
  else if(!loaded)view=loadFailed?[header(),el("p",null,"Не удалось загрузить темы. Проверьте интернет."),el("div",null,el("button",{class:"main",type:"button",textContent:"Попробовать снова",on:{click:loadTopics}}))]:[header(),el("p",{class:"muted"},"Загружаю темы…")];
  else{const t=topicById(h);view=t?viewTopic(t):bookById(h)?viewHome(h):viewHome()}
  app.replaceChildren(el("main",{class:"wrap"},view));
